@@ -48,7 +48,8 @@ public class Reader {
 			table.append("for symbol " + row.name + ", frame index " + row.index + " has duration " +
 					row.duration + " and occupies rectangle (" + row.x1 + ", " +
 					row.y1 + ", " + row.x2 + ", " + row.y2 + ") and has size " + row.w + " x " + row.h + '\n');
-			table.append("additional data: (" + row.animX + ", " + row.animY + ", " + row.animWidth + ", " + row.animHeight + ")\n");
+
+			table.append("pivot information: offset=(" + row.pivotX + ", " + row.pivotY + " comparedToSize=(" + row.pivotWidth + ", " + row.pivotHeight +")\n");
 		}
 		System.out.println(table);
 	}
@@ -130,6 +131,7 @@ public class Reader {
 		BILD.order(ByteOrder.LITTLE_ENDIAN); // seems the data is stored in little endian order
 
 		int version = BILD.getInt();
+		System.out.println("version="+version);
 		int symbols = BILD.getInt();
 		int frames = BILD.getInt();
 		String name = readString(BILD);
@@ -173,10 +175,10 @@ public class Reader {
 				frame.sourceFrameNum = sourceFrameNum;
 				frame.duration = duration;
 				frame.buildImageIdx = buildImageIdx;
-				frame.animX = num6;
-				frame.animY = num7;
-				frame.animWidth = num8;
-				frame.animHeight = num9;
+				frame.pivotX = num6;
+				frame.pivotY = num7;
+				frame.pivotWidth = num8;
+				frame.pivotHeight = num9;
 				frame.x1 = x1;
 				frame.y1 = y1;
 				frame.x2 = x2;
@@ -214,10 +216,10 @@ public class Reader {
 				row.y2 = (1 - frame.y2) * imgHeight;
 				row.w = (frame.x2 - frame.x1) * imgWidth;
 				row.h = (frame.y2 - frame.y1) * imgHeight;
-				row.animX = frame.animX;
-				row.animY = frame.animY;
-				row.animWidth = frame.animWidth;
-				row.animHeight = frame.animHeight;
+				row.pivotX = frame.pivotX;
+				row.pivotY = frame.pivotY;
+				row.pivotWidth = frame.pivotWidth;
+				row.pivotHeight = frame.pivotHeight;
 				BILDTable.add(row);
 			}
 		}
@@ -319,6 +321,7 @@ public class Reader {
 		}
 		int maxVisSymbolFrames = ANIM.getInt();
 		ANIMData.maxVisSymbolFrames = maxVisSymbolFrames;
+		System.out.println("maxVisSymbolFrames=" + maxVisSymbolFrames);
 
 		Map<Integer, String> ANIMHash = new HashMap<>();
 		int num = ANIM.getInt();

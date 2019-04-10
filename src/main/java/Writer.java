@@ -83,10 +83,13 @@ public class Writer {
 				}
 				fileNameIndex.put(key, Integer.toString(fileIndex));
 
-				float x = row.animX - row.animWidth / 2f;
-				float y = row.animY - row.animHeight / 2f;
-				float pivot_x = 0 - x / row.animWidth;
-				float pivot_y = 1 + y / row.animHeight;
+				float x = row.pivotX - row.pivotWidth / 2f;
+				float y = row.pivotY - row.pivotHeight / 2f;
+				// this computation changes pivot from being in whatever
+				// coordinate system it was originally being specified in to being specified
+				// as just a scalar multiple of the width/height (starting at the midpoint of 0.5)
+				float pivot_x = 0 - x / row.pivotWidth;
+				float pivot_y = 1 + y / row.pivotHeight;
 
 				Element file = scml.createElement("file");
 				file.setAttribute("id", Integer.toString(fileIndex));
@@ -246,6 +249,8 @@ public class Writer {
 				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
 				updateOccurrenceMap(ele, occurrenceMap);
 				String name = nameOf(ele, occurrenceMap);
+				// is part of the formula for decomposing transformation matrix into components
+				// see https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
 				double scale_x = Math.sqrt(ele.m1 * ele.m1 + ele.m2 * ele.m2);
 				double scale_y = Math.sqrt(ele.m3 * ele.m3 + ele.m4 * ele.m4);
 
@@ -254,6 +259,9 @@ public class Writer {
 					scale_y = -scale_y;
 				}
 
+				// still part of the formula for obtaining rotation component from combined rotation + scaling
+				// undue scaling by dividing by scaling and then taking average value of sin/cos to make it more
+				// accurate (b/c sin and cos appear twice each in 2d rotation matrix)
 				double sin_approx = 0.5 * (ele.m3 / scale_y - ele.m2 / scale_x);
 				double cos_approx = 0.5 * (ele.m1 / scale_x + ele.m4 / scale_y);
 				double angle = Math.atan2(sin_approx, cos_approx);
@@ -266,8 +274,8 @@ public class Writer {
 				objectDef.setAttribute("folder", "0");
 				String fileName = nameOf(ele);
 				objectDef.setAttribute("file", fileNameIndex.get(fileName));
-				objectDef.setAttribute("x", Float.toString(+ele.m5 * 0.5f));
-				objectDef.setAttribute("y", Float.toString(-ele.m6 * 0.5f));
+				objectDef.setAttribute("x", Float.toString(+ele.m5*0.5f));
+				objectDef.setAttribute("y", Float.toString(-ele.m6*0.5f));
 				objectDef.setAttribute("angle", Double.toString(angle));
 				objectDef.setAttribute("scale_x", Double.toString(scale_x));
 				objectDef.setAttribute("scale_y", Double.toString(scale_y));

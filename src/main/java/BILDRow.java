@@ -6,6 +6,6 @@ public class BILDRow {
 	int hash, time, duration;
 	float x1, y1, x2, y2;
 	float w, h;
-	float animX, animY, animWidth, animHeight;
+	float pivotX, pivotY, pivotWidth, pivotHeight;
 
 }
