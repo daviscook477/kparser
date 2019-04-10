@@ -293,6 +293,7 @@ public class Reader {
 					float m5 = ANIM.getFloat();
 					float m6 = ANIM.getFloat();
 					float order = ANIM.getFloat();
+					System.out.println(image + " " + index + " " + layer + " " + flags + " " + m5 + " " + m6);
 					ANIMElement element = new ANIMElement();
 					element.image = image;
 					element.index = index;
@@ -312,6 +313,7 @@ public class Reader {
 					element.repeat = 0;
 					frame.elementsList.add(element);
 				}
+				System.out.println();
 				bank.framesList.add(frame);
 			}
 			ANIMData.animList.add(bank);

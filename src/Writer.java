@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -127,20 +129,95 @@ public class Writer {
 		}
 	}
 
+	private String nameOf(ANIMElement ele) {
+		return ANIMHash.get(ele.image)  + '_' + ele.index;
+	}
+
+	private String nameOf(ANIMElement ele, Map<String, Integer> occurrenceMap) {
+		return nameOf(ele, occurrenceMap.get(nameOf(ele)));
+	}
+
+	private String nameOf(ANIMElement ele, int occurrenceNumber) {
+		return nameOf(ele) + '_' + occurrenceNumber;
+	}
+
+	private String nameOf(String baseName, int occurrenceNumber) {
+		return baseName + '_' + occurrenceNumber;
+	}
+
+	private SortedMap<String, Integer> buildAnimHistogram(ANIMBank bank) {
+		SortedMap<String, Integer> perFrameHistogram = new TreeMap<>();
+		SortedMap<String, Integer> overallHistogram = new TreeMap<>();
+		for (int frame = 0; frame < bank.frames; frame++) {
+			// build per frame histogram
+			perFrameHistogram.clear();
+			for (int element = 0; element < bank.framesList.get(frame).elements; element++) {
+				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
+				String name = nameOf(ele);
+				if (perFrameHistogram.containsKey(name)) {
+					perFrameHistogram.put(name, perFrameHistogram.get(name) + 1);
+				} else {
+					perFrameHistogram.put(name, 1);
+				}
+			}
+			// update overall histogram if maximums are found
+			for (String name : perFrameHistogram.keySet()) {
+				if (!overallHistogram.containsKey(name) || overallHistogram.get(name) < perFrameHistogram.get(name)) {
+					overallHistogram.put(name, perFrameHistogram.get(name));
+				}
+			}
+		}
+		return overallHistogram;
+	}
+
+	private Map<String, Integer> buildIdMap(ANIMBank bank) {
+		SortedMap<String, Integer> histogram = buildAnimHistogram(bank);
+		Map<String, Integer> idMap = new HashMap<>();
+		int index  = 0;
+		for (String name : histogram.keySet()) {
+			for (int i = 0; i < histogram.get(name); i++) {
+					idMap.put(nameOf(name, i), index++);
+			}
+		}
+		return idMap;
+	}
+
+	private Element buildKeyFrame(int frame, float rate) {
+		Element key = scml.createElement("key");
+		key.setAttribute("id", Integer.toString(frame));
+		key.setAttribute("time", Integer.toString((int) (frame * rate)));
+		return key;
+	}
+
+	private void updateOccurrenceMap(ANIMElement ele, Map<String, Integer> occurrenceMap) {
+		String name = nameOf(ele);
+		if (!occurrenceMap.containsKey(name)) {
+			occurrenceMap.put(name, 0);
+		} else {
+			occurrenceMap.put(name, occurrenceMap.get(name) + 1);
+		}
+	}
+
 	private void initMainlineInfo(Element parent, int animIndex) {
 		Element mainline = scml.createElement("mainline");
 		parent.appendChild(mainline);
 
 		ANIMBank bank = ANIMData.animList.get(animIndex);
 		float rate = bank.rate;
+		Map<String, Integer> idMap = buildIdMap(bank);
+		Map<String, Integer> occurrenceMap = new HashMap<>();
+
 		for (int frame = 0; frame < bank.frames; frame++) {
-			Element key = scml.createElement("key");
-			key.setAttribute("id", Integer.toString(frame));
-			key.setAttribute("time", Integer.toString((int) (frame * rate)));
+			Element key = buildKeyFrame(frame, rate);
+			occurrenceMap.clear();
 			for (int element = 0; element < bank.framesList.get(frame).elements; element++) {
 				Element object_ref = scml.createElement("object_ref");
-				object_ref.setAttribute("id", Integer.toString(element));
-				object_ref.setAttribute("timeline", Integer.toString(element));
+				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
+				updateOccurrenceMap(ele, occurrenceMap);
+				String name = nameOf(ele, occurrenceMap);
+				System.out.println(name);
+				object_ref.setAttribute("id", Integer.toString(idMap.get(name)));
+				object_ref.setAttribute("timeline", Integer.toString(idMap.get(name)));
 				// b/c ONI has animation properties for each element specified at every frame the timeline key frame that
 				// matches a mainline key frame is always the same
 				object_ref.setAttribute("key", Integer.toString(frame));
@@ -155,33 +232,28 @@ public class Writer {
 	private void initTimelineInfo(Element parent, int animIndex) {
 		ANIMBank bank = ANIMData.animList.get(animIndex);
 		float rate = bank.rate;
-		// invariant bank.framesList.get(any frame).elements is the same
-		int elements = bank.framesList.get(0).elements;
-		for (int element = 0; element < elements; element++) {
+		Map<Integer, Element> timelineMap = new HashMap<>();
+		Map<String, Integer> idMap = buildIdMap(bank);
+		for (String name : idMap.keySet()) {
 			Element timeline = scml.createElement("timeline");
-			ANIMElement baseElement = bank.framesList.get(0).elementsList.get(element);
-			timeline.setAttribute("id", Integer.toString(element));
-			String name = ANIMHash.get(baseElement.image) + '_' + baseElement.index;
+			timeline.setAttribute("id", Integer.toString(idMap.get(name)));
 			timeline.setAttribute("name", name);
-
-			boolean isFirst = false;
-			for (int frame = 0; frame < bank.frames; frame ++) {
-				Element key = scml.createElement("key");
-				key.setAttribute("id", Integer.toString(frame));
-				key.setAttribute("time", Integer.toString((int) (frame * rate)));
-
+			timelineMap.put(idMap.get(name), timeline);
+		}
+		Map<String, Integer> occurrenceMap = new HashMap<>();
+		for (int frame = 0; frame < bank.frames; frame++) {
+			occurrenceMap.clear();
+			for (int element = 0; element < bank.framesList.get(frame).elements; element++) {
+				Element key = buildKeyFrame(frame, rate);
 				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
+				updateOccurrenceMap(ele, occurrenceMap);
+				String name = nameOf(ele, occurrenceMap);
 				double scale_x = Math.sqrt(ele.m1 * ele.m1 + ele.m2 * ele.m2);
 				double scale_y = Math.sqrt(ele.m3 * ele.m3 + ele.m4 * ele.m4);
 
 				double det = ele.m1 * ele.m4 - ele.m3 * ele.m2;
-				if (det < 0)
-				{
-					if (isFirst) {
-						scale_x = -scale_x; isFirst = false;
-					} else {
-						scale_y = -scale_y;
-					}
+				if (det < 0) {
+					scale_y = -scale_y;
 				}
 
 				double sin_approx = 0.5 * (ele.m3 / scale_y - ele.m2 / scale_x);
@@ -194,7 +266,8 @@ public class Writer {
 				angle *= 180 / Math.PI;
 				Element objectDef = scml.createElement("object");
 				objectDef.setAttribute("folder", "0");
-				objectDef.setAttribute("file", fileNameIndex.get(name));
+				String fileName = nameOf(ele);
+				objectDef.setAttribute("file", fileNameIndex.get(fileName));
 				objectDef.setAttribute("x", Float.toString(+ele.m5 * 0.5f));
 				objectDef.setAttribute("y", Float.toString(-ele.m6 * 0.5f));
 				objectDef.setAttribute("angle", Double.toString(angle));
@@ -202,8 +275,11 @@ public class Writer {
 				objectDef.setAttribute("scale_y", Double.toString(scale_y));
 
 				key.appendChild(objectDef);
-				timeline.appendChild(key);
+				timelineMap.get(idMap.get(name)).appendChild(key);
 			}
+		}
+
+		for (Element timeline : timelineMap.values()) {
 			parent.appendChild(timeline);
 		}
 	}
