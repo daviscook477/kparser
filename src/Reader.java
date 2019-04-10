@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.imageio.ImageIO;
 
 public class Reader {
@@ -26,7 +25,7 @@ public class Reader {
 
 	public ANIM ANIMData;
 	public Map<Integer, String> ANIMHash;
-	public List<ANIMRow> ANIMTable;
+	private Map<String, Integer> ANIMIdMap;
 
 	private void printBILDData() {
 		StringBuilder data = new StringBuilder();
@@ -70,17 +69,12 @@ public class Reader {
 		System.out.println(hash);
 	}
 
-	private void printANIMTable() {
-		StringBuilder table = new StringBuilder();
-		for (ANIMRow row : ANIMTable) {
-			table.append("for animation \"" + row.name + "\" id=(" + row.idanim + ") on frame=" + row.idframe + " for symbol " + row.hash + " runs at rate " + row.rate + "\n");
-			table.append("it occupies the rectangle (" + row.x + ", " + row.y + ", " + (row.x + row.w) + ", " + (row.y + row.h) + ")\n");
-			table.append("it uses element image " + row.elementImage + " on layer " + row.elementLayer + " with index " + row.index + " flags " + row.flags + "\n");
-			table.append("	for element " + row.idelement + " on timeline " + row.timeline + " with a line key = " + row.line_key + "\n");
-			table.append("	animation matrix is " + row.m1 + " " + row.m2 + " " + row.m3 + " " + row.m4 + " " + row.m5 + " " + row.m6 + "\n");
-			table.append("	order is " + row.order + " and repeat is " + row.repeat + "\n");
+	private void printANIMIdMap() {
+		StringBuilder ids = new StringBuilder();
+		for (Map.Entry<String, Integer> entry : ANIMIdMap.entrySet()) {
+			ids.append("element " + entry.getKey() + " maps onto index " + entry.getValue() + '\n');
 		}
-		System.out.println(table);
+		System.out.println(ids);
 	}
 
 	public Reader(FileInputStream BILD, FileInputStream ANIM, FileInputStream IMG) throws IOException {
@@ -94,7 +88,7 @@ public class Reader {
 		this.BILDTable = null;
 		this.ANIMData = null;
 		this.ANIMHash = null;
-		this.ANIMTable = null;
+		this.ANIMIdMap = null;
 	}
 
 	public void exportTextures(String basePath) throws IOException {
@@ -333,97 +327,27 @@ public class Reader {
 			ANIMHash.put(hash, text);
 		}
 
-		List<ANIMRow> ANIMTable = new ArrayList<>();
-		int idanim = 0;
+		Map<String, Integer> ANIMIdMap = new HashMap<>();
+		int key = 0;
 		for (ANIMBank bank : ANIMData.animList) {
-			int idframe = 0;
-			Map<String, Integer> timelines = new HashMap<>();
 			for (ANIMFrame frame : bank.framesList) {
-				for (int idelement = 0; idelement < frame.elements; idelement++) {
-					ANIMElement element = ANIMData.animList.get(idanim).framesList.get(idframe).elementsList.get(idelement);
-
-					int timelineid = 0;
-
-					String timeline = element.image + "_" + element.index + '_' + element.layer;
-					if (!timelines.containsKey(timeline)) {
-						timelines.put(timeline, 0);
-					} else {
-						if (timelines.get(timeline) >= idframe) {
-							for (int special = 0; special < frame.elements * idframe + 1; special++) {
-								String timelineSpecial = timeline + '_' + special;
-
-								if (timelines.containsKey(timelineSpecial) && timelines.get(timelineSpecial) >= idframe) {
-									continue;
-								} else {
-									timeline = timelineSpecial;
-									if (timelines.containsKey(timelineSpecial)) {
-										timelines.put(timeline, timelines.get(timeline) + 1);
-									} else {
-										timelines.put(timeline, 0);
-									}
-
-									element.repeat = special + 1;
-									ANIMElement element1 = ANIMData.animList.get(idanim).framesList.get(idframe).elementsList.get(idelement);
-									element1.repeat = special + 1;
-									ANIMData.animList.get(idanim).framesList.get(idframe).elementsList.set(idelement, element1);
-									break;
-								}
-							}
-						} else {
-							timelines.put(timeline, timelines.get(timeline) + 1);
-						}
+				for (ANIMElement element : frame.elementsList) {
+					String name = ANIMHash.get(element.image) + '_' + element.index + '_' + ANIMHash.get(element.layer);
+					if (!ANIMIdMap.containsKey(name)) {
+						ANIMIdMap.put(name, key);
+						key += 1;
 					}
-
-					Set<String> timelineKeyset = timelines.keySet();
-					List<String> timelineKeys = new ArrayList(timelineKeyset);
-					for (int lineid = 0; lineid < timelineKeys.size(); lineid++) {
-						if (timelineKeys.get(lineid) == timeline) {
-							timelineid = lineid;
-							break;
-						}
-					}
-
-					ANIMRow row = new ANIMRow();
-					row.name = bank.name;
-					row.hash = ANIMHash.get(bank.hash);
-					row.rate = bank.rate;
-					row.x = frame.x;
-					row.y = frame.y;
-					row.w = frame.w;
-					row.h = frame.h;
-					row.elementImage = ANIMHash.get(element.image);
-					row.elementLayer = ANIMHash.get(element.layer);
-					row.image = element.image;
-					row.index = element.index;
-					row.layer = element.layer;
-					row.flags = element.flags;
-					row.idanim = idanim;
-					row.idframe = idframe;
-					row.idelement = idelement;
-					row.timeline = timelineid;
-					row.line_key = timelines.get(timelineKeys.get(timelineid));
-					row.m1 = element.m1;
-					row.m2 = element.m2;
-					row.m3 = element.m3;
-					row.m4 = element.m4;
-					row.m5 = element.m5;
-					row.m6 = element.m6;
-					row.order = element.order;
-					row.repeat = element.repeat;
-					ANIMTable.add(row);
 				}
-				idframe++;
 			}
-			idanim++;
 		}
 
 		this.ANIMData = ANIMData;
 		this.ANIMHash = ANIMHash;
-		this.ANIMTable = ANIMTable;
+		this.ANIMIdMap = ANIMIdMap;
 		this.ANIMparsed = true;
 		printANIMData();
 		printANIMHash();
-		printANIMTable();
+		printANIMIdMap();
 	}
 
 }

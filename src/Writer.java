@@ -22,16 +22,14 @@ public class Writer {
 
 	private Document scml;
 	private List<BILDRow> BILDTable;
-	private List<ANIMRow> ANIMTable;
 	private BILD BILDData;
 	private ANIM ANIMData;
 	private Map<Integer, String> ANIMHash;
 	private Map<String, String> fileNameIndex;
 
-	public void init(List<BILDRow> BILDTable, List<ANIMRow> ANIMTable, BILD BILDData, ANIM ANIMData,
+	public void init(List<BILDRow> BILDTable, BILD BILDData, ANIM ANIMData,
 					 Map<Integer, String> ANIMHash) throws ParserConfigurationException {
 		this.BILDTable = BILDTable;
-		this.ANIMTable = ANIMTable;
 		this.BILDData = BILDData;
 		this.ANIMData = ANIMData;
 		this.ANIMHash = ANIMHash;
@@ -129,25 +127,6 @@ public class Writer {
 		}
 	}
 
-	private ANIMRow selectOneRow(int idanim, int idframe, int idelement) {
-		for (ANIMRow row : ANIMTable) {
-			if (row.idanim == idanim && row.idframe == idframe && row.idelement == idelement) {
-				return row;
-			}
-		}
-		return null;
-	}
-
-	private ANIMRow selectOneRow(int idanim, int idframe, int image, int index, int layer,  float repeat) {
-		for (ANIMRow row : ANIMTable) {
-			if (row.idanim == idanim && row.idframe == idframe && row.image == image &&
-					row.index == index && row.layer == layer && Math.abs(row.repeat - repeat) <= 0.0000001f) {
-				return row;
-			}
-		}
-		return null;
-	}
-
 	private void initMainlineInfo(Element parent, int animIndex) {
 		Element mainline = scml.createElement("mainline");
 		parent.appendChild(mainline);
@@ -159,14 +138,12 @@ public class Writer {
 			key.setAttribute("id", Integer.toString(frame));
 			key.setAttribute("time", Integer.toString((int) (frame * rate)));
 			for (int element = 0; element < bank.framesList.get(frame).elements; element++) {
-				ANIMRow data = selectOneRow(animIndex, frame, element);
-				int timeline = data.timeline;
-				int line_key = data.line_key;
-
 				Element object_ref = scml.createElement("object_ref");
 				object_ref.setAttribute("id", Integer.toString(element));
-				object_ref.setAttribute("timeline", Integer.toString(timeline));
-				object_ref.setAttribute("key", Integer.toString(line_key));
+				object_ref.setAttribute("timeline", Integer.toString(element));
+				// b/c ONI has animation properties for each element specified at every frame the timeline key frame that
+				// matches a mainline key frame is always the same
+				object_ref.setAttribute("key", Integer.toString(frame));
 				object_ref.setAttribute("z_index", Integer.toString(bank.framesList.get(frame).elements - element));
 
 				key.appendChild(object_ref);
@@ -177,50 +154,23 @@ public class Writer {
 
 	private void initTimelineInfo(Element parent, int animIndex) {
 		ANIMBank bank = ANIMData.animList.get(animIndex);
-		ANIMFrame tempFrame = bank.framesList.get(0);
-
-		Map<String, ANIMElement> timelines = new HashMap<>();
-		for (ANIMFrame frame : bank.framesList) {
-			for (ANIMElement element : frame.elementsList) {
-				String temp = element.image + "_" + element.index + "_" + element.layer + "_" + element.repeat;
-				if (!timelines.containsKey(temp)) {
-					timelines.put(temp, element);
-				}
-			}
-		}
-
-		List<String> timelinesKeys = new ArrayList<>(timelines.keySet());
-		for (int line = 0; line < timelinesKeys.size(); line++) {
-			String keyd = timelinesKeys.get(line);
-			String file = ANIMHash.get(timelines.get(keyd).image) + "_" + timelines.get(keyd).index;
-
+		float rate = bank.rate;
+		// invariant bank.framesList.get(any frame).elements is the same
+		int elements = bank.framesList.get(0).elements;
+		for (int element = 0; element < elements; element++) {
 			Element timeline = scml.createElement("timeline");
-			timeline.setAttribute("id", Integer.toString(line));
-			timeline.setAttribute("name", line + "_" + file);
+			ANIMElement baseElement = bank.framesList.get(0).elementsList.get(element);
+			timeline.setAttribute("id", Integer.toString(element));
+			String name = ANIMHash.get(baseElement.image) + '_' + baseElement.index;
+			timeline.setAttribute("name", name);
 
 			boolean isFirst = false;
-			double lastAngle = 0.0;
+			for (int frame = 0; frame < bank.frames; frame ++) {
+				Element key = scml.createElement("key");
+				key.setAttribute("id", Integer.toString(frame));
+				key.setAttribute("time", Integer.toString((int) (frame * rate)));
 
-			float rate = bank.rate;
-			for (int frame = 0; frame < bank.frames; frame++) {
-				if (!fileNameIndex.containsKey(file)) continue;
-				if (bank.framesList.get(frame).elements == 0) continue;
-
-				ANIMElement ele = null;
-				for (ANIMElement element : bank.framesList.get(frame).elementsList) {
-					if (element.layer == timelines.get(timelinesKeys.get(line)).layer &&
-							element.index == timelines.get(timelinesKeys.get(line)).index &&
-							element.image == timelines.get(timelinesKeys.get(line)).image &&
-							element.repeat == timelines.get(timelinesKeys.get(line)).repeat) {
-						ele = element;
-					}
-				}
-				if (ele == null || ele.image == 0) continue;
-
-				ANIMRow data = selectOneRow(animIndex, frame, ele.image, ele.index, ele.layer, ele.repeat);
-				int line_key = data.line_key;
-				int time = (int) (data.idframe * rate);
-
+				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
 				double scale_x = Math.sqrt(ele.m1 * ele.m1 + ele.m2 * ele.m2);
 				double scale_y = Math.sqrt(ele.m3 * ele.m3 + ele.m4 * ele.m4);
 
@@ -242,23 +192,16 @@ public class Writer {
 					angle += 2 * Math.PI;
 				}
 				angle *= 180 / Math.PI;
-				lastAngle = angle;
+				Element objectDef = scml.createElement("object");
+				objectDef.setAttribute("folder", "0");
+				objectDef.setAttribute("file", fileNameIndex.get(name));
+				objectDef.setAttribute("x", Float.toString(+ele.m5 * 0.5f));
+				objectDef.setAttribute("y", Float.toString(-ele.m6 * 0.5f));
+				objectDef.setAttribute("angle", Double.toString(angle));
+				objectDef.setAttribute("scale_x", Double.toString(scale_x));
+				objectDef.setAttribute("scale_y", Double.toString(scale_y));
 
-				Element key = scml.createElement("key");
-				key.setAttribute("id", Integer.toString(line_key));
-				key.setAttribute("time", Integer.toString(time));
-
-				Element object_def = scml.createElement("object");
-				object_def.setAttribute("folder", "0");
-				object_def.setAttribute("file", fileNameIndex.get(file));
-				object_def.setAttribute("x", Float.toString(+ele.m5 * 0.5f));
-				object_def.setAttribute("y", Float.toString(-ele.m6 * 0.5f));
-				object_def.setAttribute("angle", Double.toString(angle));
-				object_def.setAttribute("scale_x", Double.toString(scale_x));
-				object_def.setAttribute("scale_y", Double.toString(scale_y));
-
-				key.appendChild(object_def);
-
+				key.appendChild(objectDef);
 				timeline.appendChild(key);
 			}
 			parent.appendChild(timeline);

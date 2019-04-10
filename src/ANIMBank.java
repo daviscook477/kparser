@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Map;
 
 public class ANIMBank {
 
@@ -7,5 +8,6 @@ public class ANIMBank {
 	public float rate;
 	public int frames;
 	public List<ANIMFrame> framesList;
+	public Map<String, Integer> elementIdMap;
 
 }
