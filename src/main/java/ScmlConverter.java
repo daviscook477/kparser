@@ -1,5 +1,4 @@
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -12,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -540,6 +541,10 @@ public class ScmlConverter {
 		}
 	}
 
+	private static class AnimationData {
+		public float x, y, angle, scaleX, scaleY;
+	}
+
 	public void packANIM(String baseTexturePath) throws IOException {
 		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
 
@@ -589,6 +594,7 @@ public class ScmlConverter {
 			Map<Integer, Element> timelineMap = getTimelineMap(timelines);
 			NodeList keyFrames = mainline.getChildNodes();
 			int frameCount = 0;
+			Map<Integer, AnimationData> lastDataMap = new HashMap<>();
 			for (int frame = 0; frame < keyFrames.getLength(); frame++) { // mainline key frames are the frames
 				if (!(keyFrames.item(frame) instanceof Element)) {
 					continue;
@@ -642,9 +648,10 @@ public class ScmlConverter {
 					element.order = 0.0f;
 					// store z Index so later can be reordered
 					element.zIndex = Integer.parseInt(objectRef.getAttribute("z_index"));
+					int timelineId = Integer.parseInt(objectRef.getAttribute("timeline"));
 
 					// now need to get corresponding timeline object ref
-					Element timeline = timelineMap.get(Integer.parseInt(objectRef.getAttribute("timeline")));
+					Element timeline = timelineMap.get(timelineId);
 					int frameId = Integer.parseInt(objectRef.getAttribute("key"));
 					Element timelineFrame = getFrameFromTimeline(timeline, frameId);
 					Element dataObject = firstMatching(timelineFrame, "object");
@@ -657,11 +664,46 @@ public class ScmlConverter {
 						// but it does need to have an associated string in the hash table so we will just
 						// write layer as the same as the image being used
 						element.layer = hashTable.get(getImageName(imageName));
-						float scaleX = Float.parseFloat(dataObject.getAttribute("scale_x"));
-						float scaleY = Float.parseFloat(dataObject.getAttribute("scale_y"));
-						float angle = Float.parseFloat(dataObject.getAttribute("angle"));
-						float xOffset = Float.parseFloat(dataObject.getAttribute("x"));
-						float yOffset = Float.parseFloat(dataObject.getAttribute("y"));
+						// spriter animation files don't repeat data if it is unchanged between frames
+						// for an object so we have to track the last know value of the data and use
+						// that if we don't see it
+						float scaleX = 1.0f;
+						if (dataObject.hasAttribute("scale_x")) {
+							scaleX = Float.parseFloat(dataObject.getAttribute("scale_x"));
+						} else if (lastDataMap.containsKey(timelineId)) {
+							scaleX = lastDataMap.get(timelineId).scaleX;
+						}
+						float scaleY = 1.0f;
+						if (dataObject.hasAttribute("scale_y")) {
+							scaleY = Float.parseFloat(dataObject.getAttribute("scale_y"));
+						} else if (lastDataMap.containsKey(timelineId)) {
+							scaleY = lastDataMap.get(timelineId).scaleY;
+						}
+						float angle = 0.0f;
+						if (dataObject.hasAttribute("angle")) {
+							angle = Float.parseFloat(dataObject.getAttribute("angle"));
+						} else if (lastDataMap.containsKey(timelineId)) {
+							angle = lastDataMap.get(timelineId).angle;
+						}
+						float xOffset = 0.0f;
+						if (dataObject.hasAttribute("x")) {
+							xOffset = Float.parseFloat(dataObject.getAttribute("x"));
+						} else if (lastDataMap.containsKey(timelineId)) {
+							xOffset = lastDataMap.get(timelineId).x;
+						}
+						float yOffset = 0.0f;
+						if (dataObject.hasAttribute("y")) {
+							yOffset = Float.parseFloat(dataObject.getAttribute("y"));
+						} else if (lastDataMap.containsKey(timelineId)) {
+							yOffset = lastDataMap.get(timelineId).y;
+						}
+						AnimationData data = new AnimationData();
+						data.scaleX = scaleX;
+						data.scaleY = scaleY;
+						data.angle = angle;
+						data.x = xOffset;
+						data.y = yOffset;
+						lastDataMap.put(timelineId, data);
 						element.m5 = xOffset * 2;
 						element.m6 = -yOffset * 2;
 						double angleRadians = Math.toRadians(angle);
@@ -712,6 +754,8 @@ public class ScmlConverter {
 						System.out.println("found invalid file reference - skipping");
 					}
 				}
+
+				Collections.sort(ANIMFrame.elementsList, Comparator.comparing(e -> -e.zIndex));
 
 				ANIMFrame.x = 0.5f * (minX + maxX);
 				ANIMFrame.y = 0.5f * (minY + maxY);
@@ -775,7 +819,7 @@ public class ScmlConverter {
 	}
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		String path = "C:\\Users\\Davis\\Documents\\airconditioner_reinterpret\\";
+		String path = "C:\\Users\\Davis\\Documents\\airconditioner\\";
 		ScmlConverter converter = new ScmlConverter();
 		converter.init(path, ScmlConverter.loadSCML(path + "airconditioner.scml"));
 		converter.packBILD(path); // reuse output path as texture path
