@@ -15,3 +15,6 @@ it is likely possible without too much additional work to export scml to kanim i
 this would mean any custom assets would display in game wrong.
 
 seems likely that team behind kanim will be publishing tool for dealing with format so futher work to understand file format may be unnecessary.
+
+ok the reason why positions and angles are slightly wrong is because the kanim format uses a 2x3 matrix to represent transformations of components but spriter only is capable of dealing with angles and scales. 2x3 matrix provides more powerful transformation than just angle and scaling so when attempting to decompose the 2x3 matrix into rotation angle and x/y scaling information is lost/it is incorrect - the math reasoning for this is that the decomposition being used only works if the original 2x3 matrix isn't composed of any skew transforms.
+however if we build a 2x3 transformation matrix when converting from spriter to kanim it should actually work fine because the 2x3 matrix can be made to accurately represent the rotation and x/y scaling that spriter is capable of.
