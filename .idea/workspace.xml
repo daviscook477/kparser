@@ -3,22 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="18519775-3612-4264-a380-4b7bd2a37154" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/kparse.iml" beforeDir="false" afterPath="$PROJECT_DIR$/kparse.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/ANIM.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/ANIMBank.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/ANIMElement.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/ANIMFrame.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/ANIMRow.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/BILD.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/BILDFrame.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/BILDRow.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/BILDSymbol.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/Main.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/Reader.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/kparse/Writer.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/BILDFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/BILDFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/BILDRow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/BILDRow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Reader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Reader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" afterDir="false" />
@@ -33,7 +17,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.4037589">
+    <splitter split-orientation="horizontal" split-proportion="0.4049844">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -45,11 +29,23 @@
               </provider>
             </entry>
           </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/main/java/Writer.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="184">
+                  <caret line="154" column="47" selection-start-line="154" selection-start-column="41" selection-end-line="154" selection-end-column="47" />
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/Reader.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="129">
-                  <caret line="159" lean-forward="true" selection-start-line="159" selection-end-line="159" />
+                <state relative-caret-position="300">
+                  <caret line="220" column="32" lean-forward="true" selection-start-line="220" selection-start-column="32" selection-end-line="220" selection-end-column="32" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -91,32 +87,29 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="4233">
-                  <caret line="270" column="28" selection-start-line="270" selection-start-column="28" selection-end-line="270" selection-end-column="28" />
+                <state relative-caret-position="231">
+                  <caret line="337" column="51" lean-forward="true" selection-start-line="337" selection-start-column="51" selection-end-line="337" selection-end-column="51" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="289">
-                  <caret line="17" column="40" selection-start-line="17" selection-start-column="40" selection-end-line="17" selection-end-column="40" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/main/java/Writer.java">
+            <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="978">
-                  <caret line="263" column="85" selection-start-line="263" selection-start-column="85" selection-end-line="263" selection-end-column="85" />
-                  <folding>
-                    <element signature="imports" expanded="true" />
-                  </folding>
+                <state relative-caret-position="255">
+                  <caret line="15" column="37" lean-forward="true" selection-start-line="15" selection-start-column="37" selection-end-line="15" selection-end-column="37" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="jar://C:/Program Files/Java/jdk-11.0.2/lib/src.zip!/java.base/java/nio/Buffer.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="199">
+                  <caret line="646" selection-start-line="646" selection-end-line="646" />
                 </state>
               </provider>
             </entry>
@@ -134,9 +127,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>System</find>
-      <find>path</find>
-      <find>getElement</find>
       <find>getElementByI</find>
       <find>line_</find>
       <find>timeline</find>
@@ -160,6 +150,13 @@
       <find>204</find>
       <find>-223</find>
       <find>animX</find>
+      <find>error</find>
+      <find>(int)</find>
+      <find>System</find>
+      <find>hashTable</find>
+      <find>writeChar</find>
+      <find>BILDData.frames</find>
+      <find>frames</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -182,20 +179,20 @@
         <option value="$PROJECT_DIR$/src/ANIMElement.java" />
         <option value="$PROJECT_DIR$/src/ScmlConverter.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/ScmlConverter.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Main.java" />
         <option value="$PROJECT_DIR$/src/main/java/BILDFrame.java" />
         <option value="$PROJECT_DIR$/src/main/java/BILDRow.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Reader.java" />
         <option value="$PROJECT_DIR$/src/main/java/Writer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Reader.java" />
+        <option value="$PROJECT_DIR$/src/main/java/ScmlConverter.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Main.java" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="3932" />
-    <option name="y" value="1052" />
-    <option name="width" value="1936" />
-    <option name="height" value="1095" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="4180" />
+    <option name="y" value="1072" />
+    <option name="width" value="1586" />
+    <option name="height" value="1086" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -241,7 +238,7 @@
     <property name="Repository.Attach.Annotations" value="false" />
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1554929525681" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1554988149015" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -294,10 +291,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="3832" y="1064" width="1936" height="1096" extended-state="6" />
+    <frame x="4180" y="1072" width="1586" height="1086" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17750533" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.08715596" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Capture Tool" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -306,7 +303,7 @@
       <window_info id="Favorites" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.34371755" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.34732425" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -314,7 +311,7 @@
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info anchor="bottom" id="Messages" order="10" weight="0.32917964" />
+      <window_info anchor="bottom" id="Messages" order="10" weight="0.32843652" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -400,20 +397,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/BILDRow.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4233">
-          <caret line="270" column="28" selection-start-line="270" selection-start-column="28" selection-end-line="270" selection-end-column="28" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="40" selection-start-line="17" selection-start-column="40" selection-end-line="17" selection-end-column="40" />
+        <state relative-caret-position="136">
+          <caret line="8" column="41" selection-start-line="8" selection-start-column="41" selection-end-line="8" selection-end-column="41" />
         </state>
       </provider>
     </entry>
@@ -431,30 +418,47 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/BILDRow.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Writer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="41" selection-start-line="8" selection-start-column="41" selection-end-line="8" selection-end-column="41" />
+        <state relative-caret-position="184">
+          <caret line="154" column="47" selection-start-line="154" selection-start-column="41" selection-end-line="154" selection-end-column="47" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk-11.0.2/lib/src.zip!/java.base/java/nio/Buffer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="199">
+          <caret line="646" selection-start-line="646" selection-end-line="646" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Reader.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="159" lean-forward="true" selection-start-line="159" selection-end-line="159" />
+        <state relative-caret-position="300">
+          <caret line="220" column="32" lean-forward="true" selection-start-line="220" selection-start-column="32" selection-end-line="220" selection-end-column="32" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Writer.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="978">
-          <caret line="263" column="85" selection-start-line="263" selection-start-column="85" selection-end-line="263" selection-end-column="85" />
+        <state relative-caret-position="231">
+          <caret line="337" column="51" lean-forward="true" selection-start-line="337" selection-start-column="51" selection-end-line="337" selection-end-column="51" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" column="37" lean-forward="true" selection-start-line="15" selection-start-column="37" selection-end-line="15" selection-end-column="37" />
         </state>
       </provider>
     </entry>

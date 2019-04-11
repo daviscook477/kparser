@@ -94,6 +94,8 @@ public class Writer {
 				Element file = scml.createElement("file");
 				file.setAttribute("id", Integer.toString(fileIndex));
 				file.setAttribute("name", row.name + "_" + row.index);
+				float sizeError = (row.w - (int) row.w) + (row.h - (int) row.h);
+				System.out.println("sizeError=" + sizeError);
 				file.setAttribute("width", Integer.toString((int) row.w));
 				file.setAttribute("height", Integer.toString((int) row.h));
 				file.setAttribute("pivot_x", Float.toString(pivot_x));
@@ -121,6 +123,7 @@ public class Writer {
 			Element animation = scml.createElement("animation");
 			animation.setAttribute("id", Integer.toString(animIndex));
 			animation.setAttribute("name", bank.name);
+			System.out.println("lengthError=" + ((bank.rate * bank.frames) - (int) (bank.rate * bank.frames)));
 			animation.setAttribute("length", Integer.toString((int) (bank.rate * bank.frames)));
 			animation.setAttribute("interval", "100");
 			root.appendChild(animation);
@@ -186,6 +189,7 @@ public class Writer {
 	private Element buildKeyFrame(int frame, float rate) {
 		Element key = scml.createElement("key");
 		key.setAttribute("id", Integer.toString(frame));
+		//System.out.println("keyFrameTimeError=" + ((frame * rate) - (int) (frame * rate)));
 		key.setAttribute("time", Integer.toString((int) (frame * rate)));
 		return key;
 	}
@@ -264,7 +268,17 @@ public class Writer {
 				// accurate (b/c sin and cos appear twice each in 2d rotation matrix)
 				double sin_approx = 0.5 * (ele.m3 / scale_y - ele.m2 / scale_x);
 				double cos_approx = 0.5 * (ele.m1 / scale_x + ele.m4 / scale_y);
+				double m1 = Math.max(Math.min(ele.m1 / scale_x, 1f), -1f);
+				double m2 = Math.max(Math.min(ele.m2 / scale_x, 1f), -1f);
+				double m3 = Math.max(Math.min(ele.m3 / scale_y, 1f), -1f);
+				double m4 = Math.max(Math.min(ele.m4 / scale_y, 1f), -1f);
+
 				double angle = Math.atan2(sin_approx, cos_approx);
+				// it seems as if the notion of simply haveing x,y, angle and scale are not really sufficient to describe the
+				// transformation applied to each point since the 2x3 matrix m1...m6 doesn't nicely decompose into a valid rotation matrix
+				// basically the two components that are sin are not equal and the two components that are cos are not equal. This would imply
+				// that there is some additional transformation being applied to each point in addition to just the scale and rotation information
+				// that makes it such that when we just look at that rotation information it does not produce the correct result
 
 				if (angle < 0) {
 					angle += 2 * Math.PI;
@@ -274,8 +288,8 @@ public class Writer {
 				objectDef.setAttribute("folder", "0");
 				String fileName = nameOf(ele);
 				objectDef.setAttribute("file", fileNameIndex.get(fileName));
-				objectDef.setAttribute("x", Float.toString(+ele.m5*0.5f));
-				objectDef.setAttribute("y", Float.toString(-ele.m6*0.5f));
+				objectDef.setAttribute("x", Float.toString((float) (+ele.m5*0.5f)));
+				objectDef.setAttribute("y", Float.toString((float) (-ele.m6*0.5f)));
 				objectDef.setAttribute("angle", Double.toString(angle));
 				objectDef.setAttribute("scale_x", Double.toString(scale_x));
 				objectDef.setAttribute("scale_y", Double.toString(scale_y));

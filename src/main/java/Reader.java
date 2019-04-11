@@ -133,8 +133,11 @@ public class Reader {
 		int version = BILD.getInt();
 		System.out.println("version="+version);
 		int symbols = BILD.getInt();
+		System.out.println("symbols="+symbols);
 		int frames = BILD.getInt();
+		System.out.println("frames="+frames);
 		String name = readString(BILD);
+		System.out.println("name="+name);
 		List<BILDSymbol> symbolsList = new ArrayList<>();
 		BILD BILDData = new BILD();
 		BILDData.version = version;
@@ -144,11 +147,13 @@ public class Reader {
 		BILDData.symbolsList = symbolsList;
 
 		for (int i = 0; i < BILDData.symbols; i++) {
+
 			int hash = BILD.getInt();
 			int path = BILDData.version > 9 ? BILD.getInt() : 0;
 			int color = BILD.getInt();
 			int flags = BILD.getInt();
 			int numFrames = BILD.getInt();
+			System.out.println("symbol " + i + "=(" + hash + ","+path+","+color+","+flags+","+numFrames);
 			List<BILDFrame> framesList = new ArrayList<>();
 			BILDSymbol symbol = new BILDSymbol();
 			symbol.hash = hash;
@@ -160,6 +165,7 @@ public class Reader {
 
 			int time = 0;
 			for (int j = 0; j < symbol.numFrames; j++) {
+				System.out.println(i + " " + j);
 				int sourceFrameNum = BILD.getInt();
 				int duration = BILD.getInt();
 				int buildImageIdx = BILD.getInt();
@@ -195,6 +201,7 @@ public class Reader {
 		for (int i = 0; i < num; i++) {
 			int hash = BILD.getInt();
 			String text = readString(BILD);
+			System.out.println(hash+"="+text);
 			BILDHash.put(hash, text);
 		}
 

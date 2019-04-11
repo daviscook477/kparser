@@ -1,4 +1,5 @@
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -7,17 +8,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -67,6 +71,25 @@ public class ScmlConverter {
 		out.write(asBytes);
 	}
 
+	private void writeFloat(DataOutputStream out, float val) throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(4);
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		byte[] asBytes = buffer.putFloat(val).array();
+		out.write(asBytes);
+	}
+
+	private void writeString(DataOutputStream out, String val) throws IOException {
+		writeString(out, val, true);
+	}
+
+	private void writeString(DataOutputStream out, String val, boolean writeLength) throws IOException {
+		if (writeLength) {
+			writeInt(out, val.length());
+		}
+		byte[] asBytes = val.getBytes(StandardCharsets.US_ASCII);
+		out.write(asBytes);
+	}
+
 	private String getFileExtension(File file) {
 		String filePath = file.getAbsolutePath();
 		int i = filePath.lastIndexOf('.');
@@ -93,7 +116,7 @@ public class ScmlConverter {
 		File textureFolder = new File(baseTexturePath);
 		File[] children = textureFolder.listFiles();
 		BILDData.symbols = 0;
-		BILDData.frames = 0;
+		BILDData.frames = -1; // frames count starts from 0
 		if (children == null) return;
 
 		for (File child : children) {
@@ -201,7 +224,7 @@ public class ScmlConverter {
 				hashTable.put(entry.name, entry.name.hashCode());
 			}
 		}
-		return null;
+		return hashTable;
 	}
 
 	private Map<String, Integer> getHistogram(List<AtlasEntry> entries) {
@@ -214,6 +237,30 @@ public class ScmlConverter {
 			}
 		}
 		return histogram;
+	}
+
+	private Map<AtlasEntry, Element> getAtlasMap(List<AtlasEntry> orderedAtlasEntries) {
+		Element folder = firstMatching("folder");
+		NodeList children = folder.getChildNodes();
+		List<Element> elementList = new ArrayList<>();
+		for (int i = 0; i < children.getLength(); i++) {
+			Node file = children.item(i);
+			if (file instanceof Element) {
+				System.out.println("was element");
+				elementList.add((Element) file);
+			}
+
+		}
+		Map<AtlasEntry, Element> map = new HashMap<>();
+		// this requires that no other image files be in the directory that are put into the atlas that aren't referenced in the file
+		for (int i = 0; i < elementList.size(); i++) {
+			for (AtlasEntry entry : orderedAtlasEntries) {
+				if (elementList.get(i).getAttribute("name").equals(entry.name + '_' + entry.index)) {
+					map.put(entry, elementList.get(i));
+				}
+			}
+		}
+		return map;
 	}
 
 	/**
@@ -252,9 +299,16 @@ public class ScmlConverter {
 
 		Map<String, Integer> hashTable = getHashTable(orderedAtlasEntries);
 		Map<String, Integer> histogram = getHistogram(orderedAtlasEntries);
+		for (Map.Entry<String, Integer> entry : histogram.entrySet()) {
+			System.out.println(entry.getKey() + " has " + entry.getValue() + " appearances");
+		}
+		Map<AtlasEntry, Element> atlasMap = getAtlasMap(orderedAtlasEntries);
 
 		BILDData.symbolsList = new ArrayList<>();
 		int symbolIndex = -1;
+		BufferedImage packedImg = ImageIO.read(new File(imgPath));
+		int imgWidth = packedImg.getWidth();
+		int imgHeight = packedImg.getHeight();
 		String lastName = null;
 		for (AtlasEntry entry : orderedAtlasEntries) {
 			if (lastName == null || !entry.name.equals(lastName)) {
@@ -267,8 +321,10 @@ public class ScmlConverter {
 				// have seen some Klei files in which flags = 1 for some symbols but can't determine what that does
 				symbol.flags = 0;
 				symbol.numFrames = histogram.get(entry.name);
+				symbol.framesList = new ArrayList<>();
 				BILDData.symbolsList.add(symbol);
 				symbolIndex++;
+				lastName = entry.name;
 			}
 			BILDFrame frame = new BILDFrame();
 			frame.sourceFrameNum = entry.index;
@@ -277,13 +333,66 @@ public class ScmlConverter {
 			frame.duration = 1;
 			// this value as read from the file is unused by Klei code and all example files have it set to 0 for all symbols
 			frame.buildImageIdx = 0;
-
+			float x1 = (float) entry.x / imgWidth;
+			float x2 = (float) (entry.x + entry.w) / imgWidth;
+			float y1 = (float) entry.y / imgHeight;
+			float y2 = (float) (entry.y + entry.h) / imgHeight;
+			frame.x1 = x1;
+			frame.y1 = y1;
+			frame.x2 = x2;
+			frame.y2 = y2;
+			// do not set frame.time since it was a calculated property and not actually used in kbild
+			frame.pivotWidth = entry.w * 2;
+			frame.pivotHeight = entry.h * 2;
+			frame.pivotX = -(Float.parseFloat(atlasMap.get(entry).getAttribute("pivot_x")) - 0.5f) * frame.pivotWidth;
+			frame.pivotY = (Float.parseFloat(atlasMap.get(entry).getAttribute("pivot_y")) - 0.5f) * frame.pivotHeight;
+			BILDData.symbolsList.get(symbolIndex).framesList.add(frame);
 		}
 
-
 		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_BILD.txt"));
+		writeString(out, "BILD", false);
+		// have to use custom write for noncharacter strings because need to write in little endian
+		writeInt(out, VERSION);
+		System.out.println("version="+VERSION);
+		writeInt(out, BILDData.symbols);
+		System.out.println("symbols="+BILDData.symbols);
+		writeInt(out, BILDData.frames);
+		System.out.println("frames="+BILDData.frames);
+		writeString(out, BILDData.name);
+		System.out.println("name="+BILDData.name);
+		int i = 0;
+		for (BILDSymbol symbol : BILDData.symbolsList) {
+			System.out.println("symbol " + i + "=("+symbol.hash+","+symbol.path+","+symbol.color+","+symbol.flags+","+symbol.numFrames+")");
+			writeInt(out, symbol.hash);
+			writeInt(out, symbol.path);
+			writeInt(out, symbol.color);
+			writeInt(out, symbol.flags);
+			writeInt(out, symbol.numFrames);
+			int j = 0;
+			for (BILDFrame frame : symbol.framesList) {
+				writeInt(out, frame.sourceFrameNum);
+				writeInt(out, frame.duration);
+				writeInt(out, frame.buildImageIdx);
+				writeFloat(out, frame.pivotX);
+				writeFloat(out, frame.pivotY);
+				writeFloat(out, frame.pivotWidth);
+				writeFloat(out, frame.pivotHeight);
+				writeFloat(out, frame.x1);
+				writeFloat(out, frame.y1);
+				writeFloat(out, frame.x2);
+				writeFloat(out, frame.y2);
+				j++;
+			}
+			i++;
+		}
 
-
+		writeInt(out, hashTable.entrySet().size());
+		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
+			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			writeInt(out, hashPair.getValue());
+			writeString(out, hashPair.getKey());
+		}
+		out.close();
 	}
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
