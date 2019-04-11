@@ -3,15 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="18519775-3612-4264-a380-4b7bd2a37154" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ANIMElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ANIMElement.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/BILDSymbol.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/BILDSymbol.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Reader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Reader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Writer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Writer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Reader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Reader.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/ScmlConverter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/ScmlConverter.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Writer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Writer.class" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -22,7 +14,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.45735943">
+    <splitter split-orientation="horizontal" split-proportion="0.3701832">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -55,8 +47,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="356">
-                  <caret line="632" column="55" selection-start-line="632" selection-start-column="55" selection-end-line="632" selection-end-column="55" />
+                <state relative-caret-position="162">
+                  <caret line="321" selection-start-line="321" selection-end-line="321" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -68,11 +60,11 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="200">
-                  <caret line="661" column="52" lean-forward="true" selection-start-line="661" selection-start-column="52" selection-end-line="661" selection-end-column="52" />
+                <state relative-caret-position="412">
+                  <caret line="647" column="82" selection-start-line="647" selection-start-column="82" selection-end-line="647" selection-end-column="82" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -110,7 +102,7 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/java/Writer.java">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="512">
@@ -248,7 +240,7 @@
     <property name="Repository.Attach.Annotations" value="false" />
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1555001291982" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1555002780595" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -265,7 +257,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Application.ScmlConverter">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="kparse" />
@@ -282,8 +274,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Application.ScmlConverter" />
+        <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
   </component>
@@ -428,13 +420,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="39" selection-start-line="13" selection-start-column="39" selection-end-line="13" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Reader.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="288">
@@ -462,10 +447,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Main.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="39" selection-start-line="13" selection-start-column="39" selection-end-line="13" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ScmlConverter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="632" column="55" selection-start-line="632" selection-start-column="55" selection-end-line="632" selection-end-column="55" />
+        <state relative-caret-position="412">
+          <caret line="647" column="82" selection-start-line="647" selection-start-column="82" selection-end-line="647" selection-end-column="82" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

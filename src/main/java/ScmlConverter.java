@@ -389,6 +389,10 @@ public class ScmlConverter {
 
 	private Element getMainline(NodeList timelines) {
 		for (int i = 0; i < timelines.getLength(); i++) {
+			if (!(timelines.item(i) instanceof Element)) {
+				System.out.println("skipping non-element tag");
+				continue;
+			}
 			Element ele = (Element) timelines.item(i);
 			if (ele.getTagName().equals("mainline")) {
 				return ele;
@@ -400,6 +404,9 @@ public class ScmlConverter {
 	private Map<Integer, Element> getTimelineMap(NodeList timelines) {
 		Map<Integer, Element> map = new HashMap<>();
 		for (int i = 0; i < timelines.getLength(); i++) {
+			if (!(timelines.item(i) instanceof Element)) {
+				continue;
+			}
 			Element ele = (Element) timelines.item(i);
 			if (ele.getTagName().equals("timeline")) {
 				map.put(Integer.parseInt(ele.getAttribute("id")), ele);
@@ -413,6 +420,10 @@ public class ScmlConverter {
 		NodeList animations = entity.getChildNodes();
 		int maxVisibleSymbolFrames = 0;
 		for (int anim = 0; anim < animations.getLength(); anim++) {
+			if (!(animations.item(anim) instanceof Element)) {
+				System.out.println("skipping non-element child");
+				continue;
+			}
 			Element animation = (Element) animations.item(anim);
 			if (!animation.getTagName().equals("animation")) {
 				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
@@ -421,12 +432,19 @@ public class ScmlConverter {
 			Element mainline = getMainline(timelines);
 			NodeList keyFrames = mainline.getChildNodes();
 			for (int frame = 0; frame < keyFrames.getLength(); frame++) {
+				if (!(keyFrames.item(frame) instanceof Element)) {
+					System.out.println("skipping non-element child");
+					continue;
+				}
 				Element key = (Element) keyFrames.item(frame);
 				if (!key.getTagName().equals("key")) {
 					throw new RuntimeException("SCML format exception - all children of animation must be key tags");
 				}
 				NodeList objects = key.getChildNodes();
 				for (int object = 0; object < objects.getLength(); object++) {
+					if (!(objects.item(object) instanceof Element)) {
+						continue;
+					}
 					Element objectRef = (Element) objects.item(object);
 					if (!objectRef.getTagName().equals("object_ref")) {
 						throw new RuntimeException("SCML format exception - all chilredn of key must be object_ref tags");
@@ -449,6 +467,9 @@ public class ScmlConverter {
 		Map<Integer, Element> fileMap = new HashMap<>();
 		NodeList files = folder.getChildNodes();
 		for (int i = 0; i < files.getLength(); i++) {
+			if (!(files.item(i) instanceof Element)) {
+				continue;
+			}
 			Element file = (Element) files.item(i);
 			if (!file.getTagName().equals("file")) {
 				throw new RuntimeException("SCML format exception - all children of folder must be file tags");
@@ -462,6 +483,9 @@ public class ScmlConverter {
 	private Element getFrameFromTimeline(Element timeline, int frame) {
 		NodeList keyList = timeline.getChildNodes();
 		for (int i = 0; i < keyList.getLength(); i++) {
+			if (!(keyList.item(i) instanceof Element)) {
+				continue;
+			}
 			Element key = (Element) keyList.item(i);
 			if (!key.getTagName().equals("key")) {
 				throw new RuntimeException("SCML format exception - all children of timeline must be key tags");
@@ -502,6 +526,9 @@ public class ScmlConverter {
 		Element entity = firstMatching("entity");
 		NodeList animations = entity.getChildNodes();
 		for (int anim = 0; anim < animations.getLength(); anim++) {
+			if (!(animations.item(anim) instanceof Element)) {
+				continue;
+			}
 			Element animation = (Element) animations.item(anim);
 			if (!animation.getTagName().equals("animation")) {
 				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
@@ -537,7 +564,12 @@ public class ScmlConverter {
 
 		Element entity = firstMatching("entity");
 		NodeList animations = entity.getChildNodes();
+		int animCount = 0;
 		for (int anim = 0; anim < animations.getLength(); anim++) {
+			if (!(animations.item(anim) instanceof Element)) {
+				continue;
+			}
+			animCount++;
 			Element animation = (Element) animations.item(anim);
 			if (!animation.getTagName().equals("animation")) {
 				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
@@ -556,10 +588,13 @@ public class ScmlConverter {
 			Element mainline = getMainline(timelines);
 			Map<Integer, Element> timelineMap = getTimelineMap(timelines);
 			NodeList keyFrames = mainline.getChildNodes();
-			// frames are in-order in the SCML so it is not important to
-			// care about the id of each of the main keyframes because id will
-			// exactly match the loop variable 'frame'
+			int frameCount = 0;
 			for (int frame = 0; frame < keyFrames.getLength(); frame++) { // mainline key frames are the frames
+				if (!(keyFrames.item(frame) instanceof Element)) {
+					continue;
+				}
+				frameCount++;
+
 				// that will be sent to klei kanim format so we have to match the timeline data to key frames
 				// - this matching will be the part for
 				Element key = (Element) keyFrames.item(frame);
@@ -587,6 +622,9 @@ public class ScmlConverter {
 				NodeList objects = key.getChildNodes();
 				int elementCount = 0;
 				for (int object = 0; object < objects.getLength(); object++) {
+					if (!(objects.item(object) instanceof Element)) {
+						continue;
+					}
 					Element objectRef = (Element) objects.item(object);
 					if (!objectRef.getTagName().equals("object_ref")) {
 						throw new RuntimeException("SCML format exception - all chilredn of key must be object_ref tags");
@@ -607,7 +645,8 @@ public class ScmlConverter {
 
 					// now need to get corresponding timeline object ref
 					Element timeline = timelineMap.get(Integer.parseInt(objectRef.getAttribute("timeline")));
-					Element timelineFrame = getFrameFromTimeline(timeline, frame);
+					int frameId = Integer.parseInt(objectRef.getAttribute("key"));
+					Element timelineFrame = getFrameFromTimeline(timeline, frameId);
 					Element dataObject = firstMatching(timelineFrame, "object");
 					try {
 						Element image = fileMap.get(Integer.parseInt(dataObject.getAttribute("file")));
@@ -682,10 +721,10 @@ public class ScmlConverter {
 				bank.framesList.add(ANIMFrame);
 			}
 
-			bank.frames = keyFrames.getLength();
+			bank.frames = frameCount;
 			ANIMData.animList.add(bank);
 		}
-		ANIMData.anims = animations.getLength();
+		ANIMData.anims = animCount;
 
 		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_ANIM.txt"));
 		writeString(out, "ANIM", false);
@@ -736,7 +775,7 @@ public class ScmlConverter {
 	}
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		String path = "C:\\Users\\Davis\\Documents\\airconditioner\\";
+		String path = "C:\\Users\\Davis\\Documents\\airconditioner_reinterpret\\";
 		ScmlConverter converter = new ScmlConverter();
 		converter.init(path, ScmlConverter.loadSCML(path + "airconditioner.scml"));
 		converter.packBILD(path); // reuse output path as texture path
