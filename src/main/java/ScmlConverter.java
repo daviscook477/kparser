@@ -1,4 +1,6 @@
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -10,8 +12,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,9 @@ import org.xml.sax.SAXException;
 
 public class ScmlConverter {
 
-	private static final int VERSION = 10;
+	private static final int BILD_VERSION = 10;
+	private static final int ANIM_VERSION = 5;
+	private static final int MS_PER_S = 1000;
 
 	private String path;
 	private Document scml;
@@ -246,10 +248,8 @@ public class ScmlConverter {
 		for (int i = 0; i < children.getLength(); i++) {
 			Node file = children.item(i);
 			if (file instanceof Element) {
-				System.out.println("was element");
 				elementList.add((Element) file);
 			}
-
 		}
 		Map<AtlasEntry, Element> map = new HashMap<>();
 		// this requires that no other image files be in the directory that are put into the atlas that aren't referenced in the file
@@ -287,21 +287,13 @@ public class ScmlConverter {
 		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
 
 		BILD BILDData = new BILD();
-		BILDData.version = VERSION;
+		BILDData.version = BILD_VERSION;
 		setSymbolsAndFrames(BILDData, baseTexturePath, imgPath);
 		BILDData.name = name;
 
 		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
-
-		// collections sort is stable so sort by index then sort by name
-		Collections.sort(orderedAtlasEntries, Comparator.comparingInt(e -> e.index));
-		Collections.sort(orderedAtlasEntries, Comparator.comparing(e -> e.name));
-
 		Map<String, Integer> hashTable = getHashTable(orderedAtlasEntries);
 		Map<String, Integer> histogram = getHistogram(orderedAtlasEntries);
-		for (Map.Entry<String, Integer> entry : histogram.entrySet()) {
-			System.out.println(entry.getKey() + " has " + entry.getValue() + " appearances");
-		}
 		Map<AtlasEntry, Element> atlasMap = getAtlasMap(orderedAtlasEntries);
 
 		BILDData.symbolsList = new ArrayList<>();
@@ -352,8 +344,8 @@ public class ScmlConverter {
 		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_BILD.txt"));
 		writeString(out, "BILD", false);
 		// have to use custom write for noncharacter strings because need to write in little endian
-		writeInt(out, VERSION);
-		System.out.println("version="+VERSION);
+		writeInt(out, BILD_VERSION);
+		System.out.println("version="+ BILD_VERSION);
 		writeInt(out, BILDData.symbols);
 		System.out.println("symbols="+BILDData.symbols);
 		writeInt(out, BILDData.frames);
@@ -395,11 +387,360 @@ public class ScmlConverter {
 		out.close();
 	}
 
+	private Element getMainline(NodeList timelines) {
+		for (int i = 0; i < timelines.getLength(); i++) {
+			Element ele = (Element) timelines.item(i);
+			if (ele.getTagName().equals("mainline")) {
+				return ele;
+			}
+		}
+		throw new RuntimeException("SCML format exception - no mainline tag child of animation");
+	}
+
+	private Map<Integer, Element> getTimelineMap(NodeList timelines) {
+		Map<Integer, Element> map = new HashMap<>();
+		for (int i = 0; i < timelines.getLength(); i++) {
+			Element ele = (Element) timelines.item(i);
+			if (ele.getTagName().equals("timeline")) {
+				map.put(Integer.parseInt(ele.getAttribute("id")), ele);
+			}
+		}
+		return map;
+	}
+
+	private void setAggregateData(ANIM ANIMData) {
+		Element entity = firstMatching("entity");
+		NodeList animations = entity.getChildNodes();
+		int maxVisibleSymbolFrames = 0;
+		for (int anim = 0; anim < animations.getLength(); anim++) {
+			Element animation = (Element) animations.item(anim);
+			if (!animation.getTagName().equals("animation")) {
+				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
+			}
+			NodeList timelines = animation.getChildNodes();
+			Element mainline = getMainline(timelines);
+			NodeList keyFrames = mainline.getChildNodes();
+			for (int frame = 0; frame < keyFrames.getLength(); frame++) {
+				Element key = (Element) keyFrames.item(frame);
+				if (!key.getTagName().equals("key")) {
+					throw new RuntimeException("SCML format exception - all children of animation must be key tags");
+				}
+				NodeList objects = key.getChildNodes();
+				for (int object = 0; object < objects.getLength(); object++) {
+					Element objectRef = (Element) objects.item(object);
+					if (!objectRef.getTagName().equals("object_ref")) {
+						throw new RuntimeException("SCML format exception - all chilredn of key must be object_ref tags");
+					}
+					if (objects.getLength() > maxVisibleSymbolFrames) {
+						maxVisibleSymbolFrames = objects.getLength();
+					}
+				}
+			}
+		}
+		ANIMData.anims = animations.getLength();
+		// these two bits of data are ignored by Klei/the kanim format so don't bother calculating them
+		ANIMData.frames = 0;
+		ANIMData.elements = 0;
+		ANIMData.maxVisSymbolFrames = maxVisibleSymbolFrames;
+	}
+
+	private Map<Integer, Element> getFileMap() {
+		Element folder = firstMatching("folder");
+		Map<Integer, Element> fileMap = new HashMap<>();
+		NodeList files = folder.getChildNodes();
+		for (int i = 0; i < files.getLength(); i++) {
+			Element file = (Element) files.item(i);
+			if (!file.getTagName().equals("file")) {
+				throw new RuntimeException("SCML format exception - all children of folder must be file tags");
+			}
+			int id = Integer.parseInt(file.getAttribute("id"));
+			fileMap.put(id, file);
+		}
+		return fileMap;
+	}
+
+	private Element getFrameFromTimeline(Element timeline, int frame) {
+		NodeList keyList = timeline.getChildNodes();
+		for (int i = 0; i < keyList.getLength(); i++) {
+			Element key = (Element) keyList.item(i);
+			if (!key.getTagName().equals("key")) {
+				throw new RuntimeException("SCML format exception - all children of timeline must be key tags");
+			}
+			if (Integer.parseInt(key.getAttribute("id")) == frame) {
+				return key;
+			}
+		}
+		throw new RuntimeException("SCML parse exception - expected frame " + frame + " to exist in timeline " + timeline.getAttribute("id") + " but it did not");
+	}
+
+	private String getImageName(String image) {
+		int i = image.lastIndexOf('_');
+		return image.substring(0, i);
+	}
+
+	private int getImageIndex(String image) {
+		int i = image.lastIndexOf('_');
+		return Integer.parseInt(image.substring(i + 1));
+	}
+
+	private Point2D.Float rotateAbout(float pivotX, float pivotY, float angle, Point2D.Float point, float scaleX, float scaleY) {
+		// order of transformations applied is:
+		// 1. -pivot
+		// 2. rotate angle
+		// 3. scale
+		// 4. +pivot
+		float sin = (float) Math.sin(angle);
+		float cos = (float) Math.cos(angle);
+		Point2D.Float point1 = new Point2D.Float(point.x - pivotX, point.y - pivotY);
+		Point2D.Float point2 = new Point2D.Float(point1.x * cos - point1.y * sin, point1.x * sin + point1.y * cos);
+		Point2D.Float point3 = new Point2D.Float(point2.x * scaleX, point2.y * scaleY);
+		Point2D.Float point4 = new Point2D.Float(point3.x + pivotX, point3.y + pivotY);
+		return point4;
+	}
+
+	private void populateHashTableWithAnimations(Map<String, Integer> hashTable) {
+		Element entity = firstMatching("entity");
+		NodeList animations = entity.getChildNodes();
+		for (int anim = 0; anim < animations.getLength(); anim++) {
+			Element animation = (Element) animations.item(anim);
+			if (!animation.getTagName().equals("animation")) {
+				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
+			}
+			String name = animation.getAttribute("name");
+			if (!hashTable.containsKey(name)) {
+				hashTable.put(name, name.hashCode());
+			}
+		}
+	}
+
+	public void packANIM(String baseTexturePath) throws IOException {
+		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
+
+		String name = nameOfEntity();
+
+		ANIM ANIMData = new ANIM();
+		ANIMData.version = ANIM_VERSION;
+		setAggregateData(ANIMData);
+		ANIMData.animList = new ArrayList<>();
+
+		// could build hash table different way but this code already works for BILD making
+		// hash table so just reuse it here
+		String atlasPath = baseTexturePath + name + ".atlas";
+		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
+		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
+		Map<String, Integer> hashTable = getHashTable(orderedAtlasEntries);
+
+		populateHashTableWithAnimations(hashTable);
+
+		// file map is a mapping from the ids assigned to each image file and the xml element that represents it
+		Map<Integer, Element> fileMap = getFileMap();
+
+		Element entity = firstMatching("entity");
+		NodeList animations = entity.getChildNodes();
+		for (int anim = 0; anim < animations.getLength(); anim++) {
+			Element animation = (Element) animations.item(anim);
+			if (!animation.getTagName().equals("animation")) {
+				throw new RuntimeException("SCML format exception - all children of entity must be animation tags");
+			}
+
+			ANIMBank bank = new ANIMBank();
+			bank.name = animation.getAttribute("name");
+			System.out.println("bank.name="+bank.name);
+			System.out.println("hashTable="+hashTable);
+			bank.hash = hashTable.get(bank.name);
+			int interval = Integer.parseInt(animation.getAttribute("interval"));
+			bank.rate = (float) MS_PER_S / interval; // interval is ms per frame so this gets fps
+			bank.framesList = new ArrayList<>();
+
+			NodeList timelines = animation.getChildNodes();
+			Element mainline = getMainline(timelines);
+			Map<Integer, Element> timelineMap = getTimelineMap(timelines);
+			NodeList keyFrames = mainline.getChildNodes();
+			// frames are in-order in the SCML so it is not important to
+			// care about the id of each of the main keyframes because id will
+			// exactly match the loop variable 'frame'
+			for (int frame = 0; frame < keyFrames.getLength(); frame++) { // mainline key frames are the frames
+				// that will be sent to klei kanim format so we have to match the timeline data to key frames
+				// - this matching will be the part for
+				Element key = (Element) keyFrames.item(frame);
+				if (!key.getTagName().equals("key")) {
+					throw new RuntimeException("SCML format exception - all children of animation must be key tags");
+				}
+
+				ANIMFrame ANIMFrame = new ANIMFrame();
+				ANIMFrame.elementsList = new ArrayList<>();
+				// the elements for this frame will be all the elements
+				// referenced in the object_ref(s) -> their data will be found
+				// in their timeline
+				// note that we need to calculate the animation's overall bounding
+				// box for this frame which will be done by computing locations
+				// of 4 rectangular bounds of each element under transformation
+				// and tracking the max and min of x and y
+				float minX = Float.MAX_VALUE;
+				float minY = Float.MAX_VALUE;
+				float maxX = Float.MIN_VALUE;
+				float maxY = Float.MIN_VALUE;
+
+				// look through object refs - will need to maintain list of object refs
+				// because in the end it must be sorted in accordance with the z-index
+				// before appended in correct order to elementsList
+				NodeList objects = key.getChildNodes();
+				int elementCount = 0;
+				for (int object = 0; object < objects.getLength(); object++) {
+					Element objectRef = (Element) objects.item(object);
+					if (!objectRef.getTagName().equals("object_ref")) {
+						throw new RuntimeException("SCML format exception - all chilredn of key must be object_ref tags");
+					}
+					ANIMElement element = new ANIMElement();
+					// we dont' use any flags so set to 0
+					element.flags = 0;
+					// spriter does not support changing colors of components
+					// through animation so this can be safely set to 0
+					element.a = 1.0f; // everything should be fully opaque
+					element.b = 0f;
+					element.g = 0f;
+					element.r = 0f;
+					// this field is actually unused entirely (it is parsed but ignored)
+					element.order = 0.0f;
+					// store z Index so later can be reordered
+					element.zIndex = Integer.parseInt(objectRef.getAttribute("z_index"));
+
+					// now need to get corresponding timeline object ref
+					Element timeline = timelineMap.get(Integer.parseInt(objectRef.getAttribute("timeline")));
+					Element timelineFrame = getFrameFromTimeline(timeline, frame);
+					Element dataObject = firstMatching(timelineFrame, "object");
+					try {
+						Element image = fileMap.get(Integer.parseInt(dataObject.getAttribute("file")));
+						String imageName = image.getAttribute("name");
+						element.image = hashTable.get(getImageName(imageName));
+						element.index = getImageIndex(imageName);
+						// layer doesn't seem to actually be used for anything after it is parsed as a "folder"
+						// but it does need to have an associated string in the hash table so we will just
+						// write layer as the same as the image being used
+						element.layer = hashTable.get(getImageName(imageName));
+						float scaleX = Float.parseFloat(dataObject.getAttribute("scale_x"));
+						float scaleY = Float.parseFloat(dataObject.getAttribute("scale_y"));
+						float angle = Float.parseFloat(dataObject.getAttribute("angle"));
+						float xOffset = Float.parseFloat(dataObject.getAttribute("x"));
+						float yOffset = Float.parseFloat(dataObject.getAttribute("y"));
+						element.m5 = xOffset * 2;
+						element.m6 = -yOffset * 2;
+						double angleRadians = Math.toRadians(angle);
+						double sin = Math.sin(angleRadians);
+						double cos = Math.cos(angleRadians);
+						element.m1 = (float) (scaleX * cos);
+						element.m2 = (float) (scaleX * -sin);
+						element.m3 = (float) (scaleY * sin);
+						element.m4 = (float) (scaleY * cos);
+
+						// calculate transformed bounds of this element
+						// note that we actually need the pivot of the element in order to determine where the
+						// element is located b/c the pivot acts as 0,0 for the x and y offsets
+						// additionally it is necessary b/c rotation is done aroudn the pivot
+						// (mathematically compute this as rotation around the origin just composed with
+						// translating the pivot to and from the origin)
+						float pivotX = Float.parseFloat(image.getAttribute("pivot_x"));
+						float pivotY = Float.parseFloat(image.getAttribute("pivot_y"));
+						int width = Integer.parseInt(image.getAttribute("width"));
+						int height = Integer.parseInt(image.getAttribute("height"));
+						pivotX *= width;
+						pivotY *= height;
+						float centerX = pivotX + xOffset;
+						float centerY = pivotY + yOffset;
+						float x1= xOffset;
+						float y1 = yOffset;
+						float x2 = x1 + width;
+						float y2 = y1 + width;
+						Point2D.Float p1 = new Point2D.Float(x1, y1);
+						Point2D.Float p2 = new Point2D.Float(x2, y1);
+						Point2D.Float p3 = new Point2D.Float(x2, y2);
+						Point2D.Float p4 = new Point2D.Float(x1, y2);
+						p1 = rotateAbout(centerX, centerY, (float) angleRadians, p1, scaleX, scaleY);
+						p2 = rotateAbout(centerX, centerY, (float) angleRadians, p2, scaleX, scaleY);
+						p3 = rotateAbout(centerX, centerY, (float) angleRadians, p3, scaleX, scaleY);
+						p4 = rotateAbout(centerX, centerY, (float) angleRadians, p4, scaleX, scaleY);
+						minX = Math.min(minX, p1.x);
+						minX = Math.min(minX, p2.x);
+						minX = Math.min(minX, p3.x);
+						minX = Math.min(minX, p4.x);
+						minY = Math.min(minY, p1.y);
+						minY = Math.min(minY, p2.y);
+						minY = Math.min(minY, p3.y);
+						minY = Math.min(minY, p4.y);
+						ANIMFrame.elementsList.add(element);
+						elementCount++;
+					} catch (NumberFormatException e) {
+						System.out.println("found invalid file reference - skipping");
+					}
+				}
+
+				ANIMFrame.x = 0.5f * (minX + maxX);
+				ANIMFrame.y = 0.5f * (minY + maxY);
+				ANIMFrame.w = maxX - minX;
+				ANIMFrame.h = maxY - minY;
+				ANIMFrame.elements = elementCount;
+				bank.framesList.add(ANIMFrame);
+			}
+
+			bank.frames = keyFrames.getLength();
+			ANIMData.animList.add(bank);
+		}
+		ANIMData.anims = animations.getLength();
+
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_ANIM.txt"));
+		writeString(out, "ANIM", false);
+		// simply read through built ANIM data structure and write out the properties
+		writeInt(out, ANIMData.version);
+		writeInt(out, ANIMData.elements);
+		writeInt(out, ANIMData.frames);
+		writeInt(out, ANIMData.anims);
+		for (ANIMBank bank : ANIMData.animList) {
+			writeString(out, bank.name);
+			writeInt(out, bank.hash);
+			writeFloat(out, bank.rate);
+			writeInt(out, bank.frames);
+			for (ANIMFrame frame : bank.framesList) {
+				writeFloat(out, frame.x);
+				writeFloat(out, frame.y);
+				writeFloat(out, frame.w);
+				writeFloat(out, frame.h);
+				writeInt(out, frame.elements);
+				for (ANIMElement element : frame.elementsList) {
+					writeInt(out, element.image);
+					writeInt(out, element.index);
+					writeInt(out, element.layer);
+					writeInt(out, element.flags);
+					writeFloat(out, element.a);
+					writeFloat(out, element.b);
+					writeFloat(out, element.g);
+					writeFloat(out, element.r);
+					writeFloat(out, element.m1);
+					writeFloat(out, element.m2);
+					writeFloat(out, element.m3);
+					writeFloat(out, element.m4);
+					writeFloat(out, element.m5);
+					writeFloat(out, element.m6);
+					writeFloat(out, element.order);
+				}
+			}
+		}
+		writeInt(out, ANIMData.maxVisSymbolFrames);
+
+		writeInt(out, hashTable.entrySet().size());
+		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
+			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			writeInt(out, hashPair.getValue());
+			writeString(out, hashPair.getKey());
+		}
+		out.close();
+	}
+
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		String path = "C:\\Users\\Davis\\Documents\\airconditioner\\";
 		ScmlConverter converter = new ScmlConverter();
 		converter.init(path, ScmlConverter.loadSCML(path + "airconditioner.scml"));
-		converter.packBILD(path);
+		converter.packBILD(path); // reuse output path as texture path
+		converter.packANIM(path);
 	}
 
 }

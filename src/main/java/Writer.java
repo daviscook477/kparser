@@ -20,6 +20,8 @@ import org.w3c.dom.NodeList;
 
 public class Writer {
 
+	private static final int MS_PER_S = 1000;
+
 	private Document scml;
 	private List<BILDRow> BILDTable;
 	private BILD BILDData;
@@ -94,8 +96,6 @@ public class Writer {
 				Element file = scml.createElement("file");
 				file.setAttribute("id", Integer.toString(fileIndex));
 				file.setAttribute("name", row.name + "_" + row.index);
-				float sizeError = (row.w - (int) row.w) + (row.h - (int) row.h);
-				System.out.println("sizeError=" + sizeError);
 				file.setAttribute("width", Integer.toString((int) row.w));
 				file.setAttribute("height", Integer.toString((int) row.h));
 				file.setAttribute("pivot_x", Float.toString(pivot_x));
@@ -119,13 +119,13 @@ public class Writer {
 
 		for (int animIndex = 0; animIndex < ANIMData.anims; animIndex++) {
 			ANIMBank bank = ANIMData.animList.get(animIndex);
+			int rate = (int) (MS_PER_S / bank.rate);
 
 			Element animation = scml.createElement("animation");
 			animation.setAttribute("id", Integer.toString(animIndex));
 			animation.setAttribute("name", bank.name);
-			System.out.println("lengthError=" + ((bank.rate * bank.frames) - (int) (bank.rate * bank.frames)));
-			animation.setAttribute("length", Integer.toString((int) (bank.rate * bank.frames)));
-			animation.setAttribute("interval", "100");
+			animation.setAttribute("length", Integer.toString(rate * bank.frames));
+			animation.setAttribute("interval", Integer.toString(rate));
 			root.appendChild(animation);
 
 			initMainlineInfo(animation, animIndex);
@@ -186,11 +186,10 @@ public class Writer {
 		return idMap;
 	}
 
-	private Element buildKeyFrame(int frame, float rate) {
+	private Element buildKeyFrame(int frame, int rate) {
 		Element key = scml.createElement("key");
 		key.setAttribute("id", Integer.toString(frame));
-		//System.out.println("keyFrameTimeError=" + ((frame * rate) - (int) (frame * rate)));
-		key.setAttribute("time", Integer.toString((int) (frame * rate)));
+		key.setAttribute("time", Integer.toString(frame * rate));
 		return key;
 	}
 
@@ -208,7 +207,7 @@ public class Writer {
 		parent.appendChild(mainline);
 
 		ANIMBank bank = ANIMData.animList.get(animIndex);
-		float rate = bank.rate;
+		int rate = (int) (MS_PER_S / bank.rate); // convert provided fps rate to number of ms per frame
 		Map<String, Integer> idMap = buildIdMap(bank);
 		Map<String, Integer> occurrenceMap = new HashMap<>();
 
@@ -236,7 +235,7 @@ public class Writer {
 
 	private void initTimelineInfo(Element parent, int animIndex) {
 		ANIMBank bank = ANIMData.animList.get(animIndex);
-		float rate = bank.rate;
+		int rate = (int) (MS_PER_S / bank.rate); // convert provided fps rate to number of ms per frame
 		Map<Integer, Element> timelineMap = new HashMap<>();
 		Map<String, Integer> idMap = buildIdMap(bank);
 		for (String name : idMap.keySet()) {

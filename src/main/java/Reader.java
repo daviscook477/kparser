@@ -56,7 +56,7 @@ public class Reader {
 
 	private void printANIMData() {
 		StringBuilder data = new StringBuilder();
-		data.append("v" + ANIMData.anims + " has " + ANIMData.anims + " different animations with " +
+		data.append("v" + ANIMData.version + " has " + ANIMData.anims + " different animations with " +
 				ANIMData.frames + " frames and " + ANIMData.elements + " elements with " + ANIMData.maxVisSymbolFrames +
 				" maximum visible symbol frames");
 		System.out.println(data);
@@ -131,13 +131,9 @@ public class Reader {
 		BILD.order(ByteOrder.LITTLE_ENDIAN); // seems the data is stored in little endian order
 
 		int version = BILD.getInt();
-		System.out.println("version="+version);
 		int symbols = BILD.getInt();
-		System.out.println("symbols="+symbols);
 		int frames = BILD.getInt();
-		System.out.println("frames="+frames);
 		String name = readString(BILD);
-		System.out.println("name="+name);
 		List<BILDSymbol> symbolsList = new ArrayList<>();
 		BILD BILDData = new BILD();
 		BILDData.version = version;
@@ -153,7 +149,6 @@ public class Reader {
 			int color = BILD.getInt();
 			int flags = BILD.getInt();
 			int numFrames = BILD.getInt();
-			System.out.println("symbol " + i + "=(" + hash + ","+path+","+color+","+flags+","+numFrames);
 			List<BILDFrame> framesList = new ArrayList<>();
 			BILDSymbol symbol = new BILDSymbol();
 			symbol.hash = hash;
@@ -165,7 +160,6 @@ public class Reader {
 
 			int time = 0;
 			for (int j = 0; j < symbol.numFrames; j++) {
-				System.out.println(i + " " + j);
 				int sourceFrameNum = BILD.getInt();
 				int duration = BILD.getInt();
 				int buildImageIdx = BILD.getInt();
@@ -201,7 +195,6 @@ public class Reader {
 		for (int i = 0; i < num; i++) {
 			int hash = BILD.getInt();
 			String text = readString(BILD);
-			System.out.println(hash+"="+text);
 			BILDHash.put(hash, text);
 		}
 
@@ -261,6 +254,7 @@ public class Reader {
 		for (int i = 0; i < ANIMData.anims; i++) {
 			String name = readString(ANIM);
 			int hash = ANIM.getInt();
+			System.out.println("anim with name="+name+" but hash="+hash);
 			float rate = ANIM.getFloat();
 			int frames1 = ANIM.getInt();
 			List<ANIMFrame> framesList = new ArrayList<>();
@@ -283,6 +277,7 @@ public class Reader {
 				frame.y = y;
 				frame.w = w;
 				frame.h = h;
+				System.out.println("animation frame=(" +x + ","+y+","+w+","+h+")");
 				frame.elements = elements1;
 				frame.elementsList = elementsList;
 
@@ -301,6 +296,8 @@ public class Reader {
 					float m4 = ANIM.getFloat();
 					float m5 = ANIM.getFloat();
 					float m6 = ANIM.getFloat();
+					System.out.println("internal=("+m5+","+m6+")");
+					System.out.println("layer="+layer);
 					float order = ANIM.getFloat();
 					ANIMElement element = new ANIMElement();
 					element.image = image;
@@ -318,7 +315,6 @@ public class Reader {
 					element.m5 = m5;
 					element.m6 = m6;
 					element.order = order;
-					element.repeat = 0;
 					frame.elementsList.add(element);
 				}
 				System.out.println();
@@ -328,7 +324,6 @@ public class Reader {
 		}
 		int maxVisSymbolFrames = ANIM.getInt();
 		ANIMData.maxVisSymbolFrames = maxVisSymbolFrames;
-		System.out.println("maxVisSymbolFrames=" + maxVisSymbolFrames);
 
 		Map<Integer, String> ANIMHash = new HashMap<>();
 		int num = ANIM.getInt();
