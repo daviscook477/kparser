@@ -834,7 +834,7 @@ public class ScmlConverter {
 	
 	public static void convert(String scmlPath) throws IOException, SAXException, ParserConfigurationException {
 		File scmlFile = new File(scmlPath);
-		String folderPath = scmlFile.getParent();
+		String folderPath = scmlFile.getParent() + "\\";
 		ScmlConverter converter = new ScmlConverter();
 		converter.init(folderPath, ScmlConverter.loadSCML(scmlPath));
 		converter.packBILD(folderPath);

@@ -14,11 +14,13 @@ public class KAnimConverter {
 				new FileInputStream(imgPath));
 		reader.parseBILDData();
 		File imgFile = new File(imgPath);
-		reader.exportTextures(imgFile.getParent() + "\\");
+		String scmlFolderPath = imgFile.getParent() + "\\scml\\";
+		new File(scmlFolderPath).mkdir();
+		reader.exportTextures(scmlFolderPath);
 		reader.parseANIMData();
 		Writer writer = new Writer();
 		writer.init(reader.BILDTable, reader.BILDData, reader.ANIMData, reader.ANIMHash);
-		String scmlPath = imgFile.getAbsolutePath().substring(0, imgFile.getAbsolutePath().lastIndexOf('.')) + ".scml";
+		String scmlPath = imgFile.getParent() + "\\scml\\" + imgFile.getName().substring(0, imgFile.getName().lastIndexOf('.')) + ".scml";
 		writer.save(scmlPath);
 	}
 	

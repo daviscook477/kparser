@@ -17,6 +17,8 @@ Both directions have been tested and confirmed to work. A more clear tutorial on
 
 ## Usage Guide
 
+### Extracting an SCML Project
+
 1. Install uTinyRipper from [here](https://github.com/mafaca/UtinyRipper).
 ![Image of download button](tut_step_0.png)
 2. Extract uTinyRipper from the zip file
@@ -40,9 +42,33 @@ Both directions have been tested and confirmed to work. A more clear tutorial on
 ![Image of the directory of the files together](tut_step_9.png)
 11. Now download the jar version of K-Parser from the releases section of this github repository. Click [here](https://github.com/daviscook477/kparser/releases) to download it. Put the jar somewhere useful. I recommend putting it near your folder containing the animation files.
 ![Image of the kparser jar](tut_step_10.png)
-12. For this next step you will need to be using at least java 9. Run the jar file with the animation files as the parameters to create the scml file.
+12. For this next step you will need to be using at least java 9. Run the jar file with the animation files as the parameters to create the scml file. Note the order of the parameters. They must be in this order: image, build, anim.
 ![Image of command to run](tut_step_11.png)
-13. Now you will have the "scml" project file in the directory. Additional the original texture file will have been split into its component pieces.
+13. Now you will have the "scml" project file contained inside the new "scml" directory. Additional the original texture file will have been split into its component pieces.
 ![Image of the directory with the scml file](tut_step_12.png)
 14. Next open the scml file in [Spriter](https://brashmonkey.com/). You can now examine and edit the Klei animation as a spriter project.
 ![Image of Spriter opening the scml file](tut_step_13.png)
+
+### Compiling Klei Animation Files
+1. Assuming you have K-Parser installed already (if not see step 11 of the scml extraction section of this tutorial) it is simple to run the compiler on the single scml file.
+![Image of command to run](tut_step_14.png)
+2. Now you will have created your three Klei animation files in the same directory as the scml project.
+![Image of created files](tut_step_15.png)
+3. The final step before you can use this new animation you have created in an ONI mod is to create an AssetBundle from these three files. This is the part that requires you to have full install of unity to do it. Unity versions 2018.3.0f2 and 2017.1.5f1 are confirmed to work. Any 2019 Unity version will fail so do not use that version of unity.
+4. Create a new 3d unity project and look at the assets panel in the bottom. It will be empty.
+![Image of assets panel](tut_step_16.png)
+5. Follow this [Unity tutorial](https://docs.unity3d.com/Manual/AssetBundles-Workflow.html) starting at the **Build the AssetBundles** header to get your Unity setup to create asset bundles.
+6. Once that is done you now should have your assets panel look like this with the "Editor" folder.
+![Image of editor folder](tut_step_17.png)
+7. Now copy your compiled Klei Animation files into the Unity Assets folder.
+![Image of assets copied over](tut_step_18.png)
+8. Next you must assign the files to an AssetBundle. Using the AssetBundle menu in the bottom right of the screen create a new AssetBundle with whatever name you want.
+![Image of asset bundle menu location](tut_step_19.png)
+9. This is what it will look like once you have assigned an AssetBundle to each of the files. Assign the three files to the **same** asset bundle.
+![Image of asset bundle assigned](tut_step_20.png)
+10. Finally right click to open the menu and then select "Build AssetBundles"
+![Image of build assetbundles option](tut_step_21.png)
+11. You AssetBundle will have been created in a new directory called "AssetBundles"
+![Image of generated bundle](tut_step_22.png)
+12. The last step is to copy the generated assetbundle file from the "AssetBundles" folder in your temporary Unity project to the "anims" folder of your mod. All animations in assetbundles that are placed in the "anims" folder will automatically be loaded as Klei animations in ONI that are available with an id that is the same as the name of the assetbundle file that you created.
+![Image of anims folder](tut_step_23.png)
