@@ -831,13 +831,22 @@ public class ScmlConverter {
 		}
 		out.close();
 	}
-
-	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		String path = "C:\\Users\\Davis\\Documents\\ONI-export\\sharedassets1.assets\\Assets\\Test\\coldwheatfiles\\outscml\\";
+	
+	public static void convert(String scmlPath) throws IOException, SAXException, ParserConfigurationException {
+		File scmlFile = new File(scmlPath);
+		String folderPath = scmlFile.getParent();
 		ScmlConverter converter = new ScmlConverter();
-		converter.init(path, ScmlConverter.loadSCML(path + "coldwheat_0.scml"));
-		converter.packBILD(path); // reuse output path as texture path
-		converter.packANIM(path);
+		converter.init(folderPath, ScmlConverter.loadSCML(scmlPath));
+		converter.packBILD(folderPath);
+		converter.packANIM(folderPath);
 	}
+
+//	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
+//		String path = "C:\\Users\\Davis\\Documents\\ONI-export\\sharedassets1.assets\\Assets\\Test\\coldwheatfiles\\outscml\\";
+//		ScmlConverter converter = new ScmlConverter();
+//		converter.init(path, ScmlConverter.loadSCML(path + "coldwheat_0.scml"));
+//		converter.packBILD(path); // reuse output path as texture path
+//		converter.packANIM(path);
+//	}
 
 }

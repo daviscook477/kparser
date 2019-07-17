@@ -34,5 +34,15 @@ Both directions have been tested and confirmed to work. A more clear tutorial on
 8. In the "Assets" folder of one of the "sharedassets" directories you will find two folders. These are "TextAsset" and "Texture2D". A Klei animation is composed of three files - 1st an image file that contains the raw picture data for the animation (this is considered a Texture2D), 2nd and 3rd are two binary files called the build and animation files (both are considered a TextAsset).
 ![Image of the TextAsset and Texture2D folders](tut_step_7.png)
 9. Now we can actually bring together all the files that make up a Klei animation. For this example we will look at the Klei animation called "airconditioner". In the game, this animation is used for the building called the "Thermo Regulator". The files you will need for the "airconditioner" animation are "Texture2D/airconditioner_0.png", "TextAsset/airconditioner_build.bytes", and "TextAsset/airconditioner_anim.bytes".
-![Image of the texture file](tup_step_8a.png)
+![Image of the texture file](tut_step_8a.png)
 ![Image of the binary files](tut_step_8b.png)
+10. All of the files for the "airconditioner" animation together looks like this.
+![Image of the directory of the files together](tut_step_9.png)
+11. Now download the jar version of K-Parser from the releases section of this github repository. Click [here](https://github.com/daviscook477/kparser/releases) to download it. Put the jar somewhere useful. I recommend putting it near your folder containing the animation files.
+![Image of the kparser jar](tut_step_10.png)
+12. For this next step you will need to be using at least java 9. Run the jar file with the animation files as the parameters to create the scml file.
+![Image of command to run](tut_step_11.png)
+13. Now you will have the "scml" project file in the directory. Additional the original texture file will have been split into its component pieces.
+![Image of the directory with the scml file](tut_step_12.png)
+14. Next open the scml file in [Spriter](https://brashmonkey.com/). You can now examine and edit the Klei animation as a spriter project.
+![Image of Spriter opening the scml file](tut_step_13.png)
