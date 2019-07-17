@@ -8,21 +8,16 @@
     <artifactId>kparse</artifactId>
     <version>1.0-SNAPSHOT</version>
 
- <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                    <configuration>
-        <source>11</source>
-        <target>11</target>
-    </configuration>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.9</source>
+                    <target>1.9</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -28,6 +28,17 @@ import org.xml.sax.SAXException;
 
 public class ScmlConverter {
 
+	private static final int KleiHash(String str) {
+		if (str == null) {
+			return 0;
+		}
+		int num = 0;
+		for (int i = 0; i < str.length(); i++) {
+			num = ((int) str.toLowerCase().charAt(i)) + (num << 6) + (num << 16) - num;
+		}
+		return num;
+	}
+	
 	private static final int BILD_VERSION = 10;
 	private static final int ANIM_VERSION = 5;
 	private static final int MS_PER_S = 1000;
@@ -224,7 +235,7 @@ public class ScmlConverter {
 		Map<String, Integer> hashTable = new HashMap<>();
 		for (AtlasEntry entry : entries) {
 			if (entry.index == 0) {
-				hashTable.put(entry.name, entry.name.hashCode());
+				hashTable.put(entry.name, KleiHash(entry.name));
 			}
 		}
 		return hashTable;
@@ -342,7 +353,7 @@ public class ScmlConverter {
 			BILDData.symbolsList.get(symbolIndex).framesList.add(frame);
 		}
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_BILD.txt"));
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_build.bytes"));
 		writeString(out, "BILD", false);
 		// have to use custom write for noncharacter strings because need to write in little endian
 		writeInt(out, BILD_VERSION);
@@ -536,7 +547,7 @@ public class ScmlConverter {
 			}
 			String name = animation.getAttribute("name");
 			if (!hashTable.containsKey(name)) {
-				hashTable.put(name, name.hashCode());
+				hashTable.put(name, KleiHash(name));
 			}
 		}
 	}
@@ -585,7 +596,10 @@ public class ScmlConverter {
 			System.out.println("bank.name="+bank.name);
 			System.out.println("hashTable="+hashTable);
 			bank.hash = hashTable.get(bank.name);
-			int interval = Integer.parseInt(animation.getAttribute("interval"));
+			int interval = 33;
+			try {
+				interval = Integer.parseInt(animation.getAttribute("interval"));
+			} catch (NumberFormatException e) {}
 			bank.rate = (float) MS_PER_S / interval; // interval is ms per frame so this gets fps
 			bank.framesList = new ArrayList<>();
 
@@ -641,9 +655,9 @@ public class ScmlConverter {
 					// spriter does not support changing colors of components
 					// through animation so this can be safely set to 0
 					element.a = 1.0f; // everything should be fully opaque
-					element.b = 0f;
-					element.g = 0f;
-					element.r = 0f;
+					element.b = 1.0f;
+					element.g = 1.0f;
+					element.r = 1.0f;
 					// this field is actually unused entirely (it is parsed but ignored)
 					element.order = 0.0f;
 					// store z Index so later can be reordered
@@ -770,7 +784,7 @@ public class ScmlConverter {
 		}
 		ANIMData.anims = animCount;
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_ANIM.txt"));
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_anim.bytes"));
 		writeString(out, "ANIM", false);
 		// simply read through built ANIM data structure and write out the properties
 		writeInt(out, ANIMData.version);
@@ -819,9 +833,9 @@ public class ScmlConverter {
 	}
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		String path = "C:\\Users\\Davis\\Documents\\airconditioner\\";
+		String path = "C:\\Users\\Davis\\Documents\\ONI-export\\sharedassets1.assets\\Assets\\Test\\coldwheatfiles\\outscml\\";
 		ScmlConverter converter = new ScmlConverter();
-		converter.init(path, ScmlConverter.loadSCML(path + "airconditioner.scml"));
+		converter.init(path, ScmlConverter.loadSCML(path + "coldwheat_0.scml"));
 		converter.packBILD(path); // reuse output path as texture path
 		converter.packANIM(path);
 	}
