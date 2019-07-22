@@ -267,7 +267,8 @@ public class ScmlConverter {
 		// this requires that no other image files be in the directory that are put into the atlas that aren't referenced in the file
 		for (int i = 0; i < elementList.size(); i++) {
 			for (AtlasEntry entry : orderedAtlasEntries) {
-				if (elementList.get(i).getAttribute("name").equals(entry.name + '_' + entry.index)) {
+				if (elementList.get(i).getAttribute("name").equals(entry.name + '_' + entry.index) 
+						|| elementList.get(i).getAttribute("name").contentEquals(entry.name + '_' + entry.index + ".png")) {
 					map.put(entry, elementList.get(i));
 				}
 			}
@@ -672,6 +673,10 @@ public class ScmlConverter {
 					try {
 						Element image = fileMap.get(Integer.parseInt(dataObject.getAttribute("file")));
 						String imageName = image.getAttribute("name");
+						if (imageName.endsWith(".png"))
+						{
+							imageName = imageName.substring(0, imageName.length() - 4);
+						}
 						element.image = hashTable.get(getImageName(imageName));
 						element.index = getImageIndex(imageName);
 						// layer doesn't seem to actually be used for anything after it is parsed as a "folder"
