@@ -46,7 +46,6 @@ public class ScmlConverter {
 	private static final int MS_PER_S = 1000;
 
 	private Document scml;
-	private boolean initialized = false;
 
 	public static Document loadSCML(String path) throws IOException, SAXException, ParserConfigurationException {
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -55,10 +54,8 @@ public class ScmlConverter {
 		return scml;
 	}
 
-	public void init(Path path, Document scml) {
-		if (initialized) return;
+	public ScmlConverter(Document scml) {
 		this.scml = scml;
-		this.initialized = true;
 	}
 
 	private Element firstMatching(String name) {
@@ -289,8 +286,6 @@ public class ScmlConverter {
 	 * If this invariant is not maintained, I have no idea if packBILD will work
 	 */
 	public void packBILD(Path inputPath, Path outputPath) throws IOException {
-		if (!initialized)
-			throw new RuntimeException("Must initialize ScmlConverter before packing");
 		TexturePacker.Settings settings = new TexturePacker.Settings();
 		settings.square = true;
 		String name = nameOfEntity();
@@ -560,9 +555,6 @@ public class ScmlConverter {
 	}
 
 	public void packANIM(Path atlasPath, Path outputPath) throws IOException {
-		if (!initialized)
-			throw new RuntimeException("Must initialize ScmlConverter before packing");
-
 		String name = nameOfEntity();
 
 		ANIM ANIMData = new ANIM();
@@ -842,10 +834,9 @@ public class ScmlConverter {
 	}
 	
 	public static void convert(Path scmlpath) throws IOException, SAXException, ParserConfigurationException {
-		ScmlConverter converter = new ScmlConverter();
 		var scml = ScmlConverter.loadSCML(scmlpath.toString());
+		ScmlConverter converter = new ScmlConverter(scml);
 		var inputPath = scmlpath.getParent();
-		converter.init(inputPath, scml);
 
 		// Where we're outputting
 		var outputPath = inputPath.resolve("build");
