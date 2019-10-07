@@ -16,7 +16,8 @@ public class Main {
 //		writer.save(pathStart + "coldwheat_0.scml");
 //	}
 
-	public static boolean BE_VERBOSE = false;
+	public static boolean BE_VERBOSE = true;
+	public static boolean BE_VERY_VERBOSE = false;
 	public static final String SCML = "scml";
 	public static final String KANIM = "kanim";
 	public static final String HELP = "help";

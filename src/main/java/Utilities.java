@@ -34,8 +34,14 @@ public class Utilities {
         return path;
     }
 
-    public static void PrintDebug(String str) {
+    public static void PrintInfo(String str) {
         if (Main.BE_VERBOSE) {
+            System.out.println(str);
+        }
+    }
+
+    public static void PrintDebug(String str) {
+        if (Main.BE_VERY_VERBOSE) {
             System.out.println(str);
         }
     }

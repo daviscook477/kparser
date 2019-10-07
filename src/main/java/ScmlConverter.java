@@ -287,6 +287,7 @@ public class ScmlConverter {
 	 */
 	public void packBILD(Path inputPath, Path outputPath) throws IOException {
 		TexturePacker.Settings settings = new TexturePacker.Settings();
+		settings.silent = true;
 		settings.square = true;
 		String name = nameOfEntity();
 		TexturePacker.process(settings, inputPath.toString(), outputPath.toString(), name);
@@ -400,7 +401,7 @@ public class ScmlConverter {
 	private Element getMainline(NodeList timelines) {
 		for (int i = 0; i < timelines.getLength(); i++) {
 			if (!(timelines.item(i) instanceof Element)) {
-				System.out.println("skipping non-element tag");
+				Utilities.PrintDebug("skipping non-element tag");
 				continue;
 			}
 			Element ele = (Element) timelines.item(i);
@@ -431,7 +432,7 @@ public class ScmlConverter {
 		int maxVisibleSymbolFrames = 0;
 		for (int anim = 0; anim < animations.getLength(); anim++) {
 			if (!(animations.item(anim) instanceof Element)) {
-				System.out.println("skipping non-element child");
+				Utilities.PrintDebug("skipping non-element child");
 				continue;
 			}
 			Element animation = (Element) animations.item(anim);
@@ -443,7 +444,7 @@ public class ScmlConverter {
 			NodeList keyFrames = mainline.getChildNodes();
 			for (int frame = 0; frame < keyFrames.getLength(); frame++) {
 				if (!(keyFrames.item(frame) instanceof Element)) {
-					System.out.println("skipping non-element child");
+					Utilities.PrintDebug("skipping non-element child");
 					continue;
 				}
 				Element key = (Element) keyFrames.item(frame);
@@ -588,8 +589,8 @@ public class ScmlConverter {
 
 			ANIMBank bank = new ANIMBank();
 			bank.name = animation.getAttribute("name");
-			System.out.println("bank.name="+bank.name);
-			System.out.println("hashTable="+hashTable);
+			Utilities.PrintDebug("bank.name="+bank.name);
+			Utilities.PrintDebug("hashTable="+hashTable);
 			bank.hash = hashTable.get(bank.name);
 			int interval = 33;
 			try {
@@ -764,7 +765,7 @@ public class ScmlConverter {
 						ANIMFrame.elementsList.add(element);
 						elementCount++;
 					} catch (NumberFormatException e) {
-						System.out.println("found invalid file reference - skipping");
+						Utilities.PrintDebug("found invalid file reference - skipping");
 					}
 				}
 
@@ -841,13 +842,18 @@ public class ScmlConverter {
 		// Where we're outputting
 		var outputPath = inputPath.resolve("build");
 		// Make sure our output folder exists
-		Files.createDirectories(outputPath);
+		if (outputPath.toFile().mkdirs()) {
+			Utilities.PrintInfo("Creating output directories.");
+		}
 
 		// path of the output .atlas file
 		var atlasPath = outputPath.resolve(converter.nameOfEntity() + ".atlas");
 
+		Utilities.PrintInfo("Packing texture...");
 		converter.packBILD(inputPath, outputPath);
+		Utilities.PrintInfo("Packing animation...");
 		converter.packANIM(atlasPath, outputPath);
+		Utilities.PrintInfo("Done.");
 	}
 
 }
