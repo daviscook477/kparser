@@ -1,5 +1,3 @@
-import java.io.FileInputStream;
-
 public class Main {
 
 //	public static void main(String[] args) throws Exception {
@@ -18,6 +16,7 @@ public class Main {
 //		writer.save(pathStart + "coldwheat_0.scml");
 //	}
 
+	public static boolean BE_VERBOSE = false;
 	public static final String SCML = "scml";
 	public static final String KANIM = "kanim";
 	public static final String HELP = "help";
@@ -47,15 +46,13 @@ public class Main {
 			System.exit(0);
 		} else if (args[0].equals(KANIM)) {
 			if (args.length < 2) {
-				System.out.println("K-Parser must be provided 1 filename when run in \"kanim\" mode. This is scml file");
+				System.out.println("K-Parser must be provided the path to the scml file when run in 'kanim' mode.");
 				System.exit(-4);
 			}
-			ScmlConverter.convert(args[1]);
-			System.exit(0);
+			// Try to get the parent directory.
+			ScmlConverter.convert(Utilities.getAbsolutePath(args[1]));
+		} else {
+			System.out.println("Should not be able to get here.");
 		}
-			
-		System.out.println("Should not have been able to reach here");
-		System.exit(-2);
 	}
-	
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,7 +45,6 @@ public class ScmlConverter {
 	private static final int ANIM_VERSION = 5;
 	private static final int MS_PER_S = 1000;
 
-	private String path;
 	private Document scml;
 	private boolean initialized = false;
 
@@ -54,9 +55,8 @@ public class ScmlConverter {
 		return scml;
 	}
 
-	public void init(String path, Document scml) {
+	public void init(Path path, Document scml) {
 		if (initialized) return;
-		this.path = path;
 		this.scml = scml;
 		this.initialized = true;
 	}
@@ -288,20 +288,21 @@ public class ScmlConverter {
 	 *
 	 * If this invariant is not maintained, I have no idea if packBILD will work
 	 */
-	public void packBILD(String baseTexturePath) throws IOException {
-		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
+	public void packBILD(Path inputPath, Path outputPath) throws IOException {
+		if (!initialized)
+			throw new RuntimeException("Must initialize ScmlConverter before packing");
 		TexturePacker.Settings settings = new TexturePacker.Settings();
 		settings.square = true;
 		String name = nameOfEntity();
-		TexturePacker.process(settings, baseTexturePath, baseTexturePath, name);
-		String imgPath = baseTexturePath + name + ".png";
-		String atlasPath = baseTexturePath + name + ".atlas";
+		TexturePacker.process(settings, inputPath.toString(), outputPath.toString(), name);
+		Path imgPath = outputPath.resolve(name + ".png");
+		Path atlasPath = outputPath.resolve(name + ".atlas");
 		// read the produced atlas file to know what data must be included in the BILD file
-		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
+		BufferedReader reader = new BufferedReader(new FileReader(atlasPath.toString()));
 
 		BILD BILDData = new BILD();
 		BILDData.version = BILD_VERSION;
-		setSymbolsAndFrames(BILDData, baseTexturePath, imgPath);
+		setSymbolsAndFrames(BILDData, inputPath.toString(), imgPath.toString());
 		BILDData.name = name;
 
 		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
@@ -311,7 +312,7 @@ public class ScmlConverter {
 
 		BILDData.symbolsList = new ArrayList<>();
 		int symbolIndex = -1;
-		BufferedImage packedImg = ImageIO.read(new File(imgPath));
+		BufferedImage packedImg = ImageIO.read(new File(imgPath.toString()));
 		int imgWidth = packedImg.getWidth();
 		int imgHeight = packedImg.getHeight();
 		String lastName = null;
@@ -354,20 +355,21 @@ public class ScmlConverter {
 			BILDData.symbolsList.get(symbolIndex).framesList.add(frame);
 		}
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_build.bytes"));
+		DataOutputStream out = new DataOutputStream(
+				new FileOutputStream(outputPath.resolve(name + "_build.bytes").toString()));
 		writeString(out, "BILD", false);
 		// have to use custom write for noncharacter strings because need to write in little endian
 		writeInt(out, BILD_VERSION);
-		System.out.println("version="+ BILD_VERSION);
+		Utilities.PrintDebug("version="+ BILD_VERSION);
 		writeInt(out, BILDData.symbols);
-		System.out.println("symbols="+BILDData.symbols);
+		Utilities.PrintDebug("symbols="+BILDData.symbols);
 		writeInt(out, BILDData.frames);
-		System.out.println("frames="+BILDData.frames);
+		Utilities.PrintDebug("frames="+BILDData.frames);
 		writeString(out, BILDData.name);
-		System.out.println("name="+BILDData.name);
+		Utilities.PrintDebug("name="+BILDData.name);
 		int i = 0;
 		for (BILDSymbol symbol : BILDData.symbolsList) {
-			System.out.println("symbol " + i + "=("+symbol.hash+","+symbol.path+","+symbol.color+","+symbol.flags+","+symbol.numFrames+")");
+			Utilities.PrintDebug("symbol " + i + "=("+symbol.hash+","+symbol.path+","+symbol.color+","+symbol.flags+","+symbol.numFrames+")");
 			writeInt(out, symbol.hash);
 			writeInt(out, symbol.path);
 			writeInt(out, symbol.color);
@@ -393,7 +395,7 @@ public class ScmlConverter {
 
 		writeInt(out, hashTable.entrySet().size());
 		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
-			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			Utilities.PrintDebug(hashPair.getValue()+"="+hashPair.getKey());
 			writeInt(out, hashPair.getValue());
 			writeString(out, hashPair.getKey());
 		}
@@ -557,8 +559,9 @@ public class ScmlConverter {
 		public float x, y, angle, scaleX, scaleY;
 	}
 
-	public void packANIM(String baseTexturePath) throws IOException {
-		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
+	public void packANIM(Path atlasPath, Path outputPath) throws IOException {
+		if (!initialized)
+			throw new RuntimeException("Must initialize ScmlConverter before packing");
 
 		String name = nameOfEntity();
 
@@ -569,8 +572,7 @@ public class ScmlConverter {
 
 		// could build hash table different way but this code already works for BILD making
 		// hash table so just reuse it here
-		String atlasPath = baseTexturePath + name + ".atlas";
-		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
+		BufferedReader reader = new BufferedReader(new FileReader(atlasPath.toFile()));
 		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
 		Map<String, Integer> hashTable = getHashTable(orderedAtlasEntries);
 
@@ -789,7 +791,9 @@ public class ScmlConverter {
 		}
 		ANIMData.anims = animCount;
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_anim.bytes"));
+		DataOutputStream out = new DataOutputStream(
+				new FileOutputStream(outputPath.resolve(name + "_anim.bytes").toFile()));
+
 		writeString(out, "ANIM", false);
 		// simply read through built ANIM data structure and write out the properties
 		writeInt(out, ANIMData.version);
@@ -830,28 +834,29 @@ public class ScmlConverter {
 
 		writeInt(out, hashTable.entrySet().size());
 		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
-			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			Utilities.PrintDebug(hashPair.getValue()+"="+hashPair.getKey());
 			writeInt(out, hashPair.getValue());
 			writeString(out, hashPair.getKey());
 		}
 		out.close();
 	}
 	
-	public static void convert(String scmlPath) throws IOException, SAXException, ParserConfigurationException {
-		File scmlFile = new File(scmlPath);
-		String folderPath = scmlFile.getParent() + "\\";
+	public static void convert(Path scmlpath) throws IOException, SAXException, ParserConfigurationException {
 		ScmlConverter converter = new ScmlConverter();
-		converter.init(folderPath, ScmlConverter.loadSCML(scmlPath));
-		converter.packBILD(folderPath);
-		converter.packANIM(folderPath);
-	}
+		var scml = ScmlConverter.loadSCML(scmlpath.toString());
+		var inputPath = scmlpath.getParent();
+		converter.init(inputPath, scml);
 
-//	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-//		String path = "C:\\Users\\Davis\\Documents\\ONI-export\\sharedassets1.assets\\Assets\\Test\\coldwheatfiles\\outscml\\";
-//		ScmlConverter converter = new ScmlConverter();
-//		converter.init(path, ScmlConverter.loadSCML(path + "coldwheat_0.scml"));
-//		converter.packBILD(path); // reuse output path as texture path
-//		converter.packANIM(path);
-//	}
+		// Where we're outputting
+		var outputPath = inputPath.resolve("build");
+		// Make sure our output folder exists
+		Files.createDirectories(outputPath);
+
+		// path of the output .atlas file
+		var atlasPath = outputPath.resolve(converter.nameOfEntity() + ".atlas");
+
+		converter.packBILD(inputPath, outputPath);
+		converter.packANIM(atlasPath, outputPath);
+	}
 
 }
