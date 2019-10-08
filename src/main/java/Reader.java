@@ -32,7 +32,7 @@ public class Reader {
 		StringBuilder data = new StringBuilder();
 		data.append(BILDData.name + " v" + BILDData.version + '\n');
 		data.append("there are " + BILDData.symbols + " symbols and " + BILDData.frames + " frames");
-		System.out.println(data);
+		Utilities.PrintDebug(data.toString());
 	}
 
 	private void printBILDHash() {
@@ -40,7 +40,7 @@ public class Reader {
 		for (Map.Entry<Integer, String> entry : BILDHash.entrySet()) {
 			hash.append("value " + entry.getKey() + " maps onto symbol " + entry.getValue() + '\n');
 		}
-		System.out.println(hash);
+		Utilities.PrintDebug(hash.toString());
 	}
 
 	private void printBILDTable() {
@@ -52,7 +52,7 @@ public class Reader {
 
 			table.append("pivot information: offset=(" + row.pivotX + ", " + row.pivotY + " comparedToSize=(" + row.pivotWidth + ", " + row.pivotHeight +")\n");
 		}
-		System.out.println(table);
+		Utilities.PrintDebug(table.toString());
 	}
 
 	private void printANIMData() {
@@ -60,7 +60,7 @@ public class Reader {
 		data.append("v" + ANIMData.version + " has " + ANIMData.anims + " different animations with " +
 				ANIMData.frames + " frames and " + ANIMData.elements + " elements with " + ANIMData.maxVisSymbolFrames +
 				" maximum visible symbol frames");
-		System.out.println(data);
+		Utilities.PrintDebug(data.toString());
 	}
 
 	private void printANIMHash() {
@@ -68,7 +68,7 @@ public class Reader {
 		for (Map.Entry<Integer, String> entry : ANIMHash.entrySet()) {
 			hash.append("value " + entry.getKey() + " maps onto symbol " + entry.getValue() + '\n');
 		}
-		System.out.println(hash);
+		Utilities.PrintDebug(hash.toString());
 	}
 
 	private void printANIMIdMap() {
@@ -76,7 +76,7 @@ public class Reader {
 		for (Map.Entry<String, Integer> entry : ANIMIdMap.entrySet()) {
 			ids.append("element " + entry.getKey() + " maps onto index " + entry.getValue() + '\n');
 		}
-		System.out.println(ids);
+		Utilities.PrintDebug(ids.toString());
 	}
 
 	public Reader(FileInputStream BILD, FileInputStream ANIM, FileInputStream IMG) throws IOException {
@@ -255,7 +255,7 @@ public class Reader {
 		for (int i = 0; i < ANIMData.anims; i++) {
 			String name = readString(ANIM);
 			int hash = ANIM.getInt();
-			System.out.println("anim with name="+name+" but hash="+hash);
+			Utilities.PrintDebug("anim with name="+name+" but hash="+hash);
 			float rate = ANIM.getFloat();
 			int frames1 = ANIM.getInt();
 			List<ANIMFrame> framesList = new ArrayList<>();
@@ -278,7 +278,7 @@ public class Reader {
 				frame.y = y;
 				frame.w = w;
 				frame.h = h;
-				System.out.println("animation frame=(" +x + ","+y+","+w+","+h+")");
+				Utilities.PrintDebug("animation frame=(" +x + ","+y+","+w+","+h+")");
 				frame.elements = elements1;
 				frame.elementsList = elementsList;
 
@@ -297,8 +297,8 @@ public class Reader {
 					float m4 = ANIM.getFloat();
 					float m5 = ANIM.getFloat();
 					float m6 = ANIM.getFloat();
-					System.out.println("internal=("+m5+","+m6+")");
-					System.out.println("layer="+layer);
+					Utilities.PrintDebug("internal=("+m5+","+m6+")");
+					Utilities.PrintDebug("layer="+layer);
 					float order = ANIM.getFloat();
 					ANIMElement element = new ANIMElement();
 					element.image = image;
@@ -318,7 +318,7 @@ public class Reader {
 					element.order = order;
 					frame.elementsList.add(element);
 				}
-				System.out.println();
+				Utilities.PrintDebug("");
 				bank.framesList.add(frame);
 			}
 			ANIMData.animList.add(bank);

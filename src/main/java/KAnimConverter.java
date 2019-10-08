@@ -10,6 +10,7 @@ import javax.xml.transform.TransformerException;
 public class KAnimConverter {
 	
 	public static void convert(String imgPathStr, String buildPathStr, String animPathStr) throws FileNotFoundException, IOException, ParserConfigurationException, TransformerException {
+		Utilities.PrintInfo("Unpack started.");
 		var imgPath = Path.of(imgPathStr);
 		var build = Path.of(buildPathStr).toFile();
 		var anim = Path.of(animPathStr).toFile();
@@ -17,10 +18,14 @@ public class KAnimConverter {
 		Reader reader = new Reader(new FileInputStream(build),
 				new FileInputStream(anim),
 				new FileInputStream(imgPath.toFile()));
+		Utilities.PrintInfo("Parsing build data.");
 		reader.parseBILDData();
 		Path outputPath = Path.of("").resolve("scml");
 		outputPath.toFile().mkdirs();
+		Utilities.PrintInfo("Exporting textures.");
+
 		reader.exportTextures(outputPath);
+		Utilities.PrintInfo("Parsing animation data.");
 		reader.parseANIMData();
 		Writer writer = new Writer();
 		writer.init(reader.BILDTable, reader.BILDData, reader.ANIMData, reader.ANIMHash);
@@ -29,7 +34,11 @@ public class KAnimConverter {
 		String scmlFileName = filename
 				.substring(0, filename.lastIndexOf('.')) + ".scml";
 		var outputFilePath = outputPath.resolve(scmlFileName);
+
+		Utilities.PrintInfo("Writing...");
 		writer.save(outputFilePath);
+
+		Utilities.PrintInfo("Done.");
 	}
 	
 }

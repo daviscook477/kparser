@@ -72,7 +72,7 @@ public class Main {
 
 				KAnimConverter.convert(png, build, anim);
 			} else {
-				System.err.println("You must specify the conversion direction (--kanim or --scml).");
+				System.err.println("You must specify the conversion direction (--to-kanim or --to-scml).");
 			}
 		}
 	}

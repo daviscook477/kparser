@@ -220,7 +220,7 @@ public class Writer {
 				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
 				updateOccurrenceMap(ele, occurrenceMap);
 				String name = nameOf(ele, occurrenceMap);
-				System.out.println(name);
+				Utilities.PrintDebug(name);
 				object_ref.setAttribute("id", Integer.toString(idMap.get(name)));
 				object_ref.setAttribute("timeline", Integer.toString(idMap.get(name)));
 				// b/c ONI has animation properties for each element specified at every frame the timeline key frame that
