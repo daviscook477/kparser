@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="18519775-3612-4264-a380-4b7bd2a37154" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,11 +32,17 @@
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
     <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1555006441227" />
+    <property name="jdk.selected.JAVA_MODULE" value="13" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../oni-sprites/spaceheater.scml" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\coding\kparser\imgs" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -49,12 +56,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Main">
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Application.Help">
+    <configuration name="Help" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="kparse" />
-      <option name="PROGRAM_PARAMETERS" value="kanim spaceheater_0.scml" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../oni-sprites/spaceheater.scml" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -66,13 +71,42 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="To KAnim" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="kparse" />
+      <option name="PROGRAM_PARAMETERS" value="--to-kanim spaceheater_0.scml" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../oni-sprites/spaceheater.scml" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="To KAnim, silent" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="kparse" />
+      <option name="PROGRAM_PARAMETERS" value="--to-kanim --silent spaceheater_0.scml" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../oni-sprites/spaceheater.scml" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="To SCML" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="kparse" />
+      <option name="PROGRAM_PARAMETERS" value="--to-scml Texture2D\spaceheater_0.scml TextAsset\spaceheater_build.bytes TextAsset\spaceheater_anim.bytes" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../oni-sprites/Assets" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <list>
-      <item itemvalue="Application.Main" />
+      <item itemvalue="Application.To SCML" />
+      <item itemvalue="Application.To KAnim" />
+      <item itemvalue="Application.To KAnim, silent" />
+      <item itemvalue="Application.Help" />
       <item itemvalue="Application.ScmlConverter" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Application.ScmlConverter" />
       </list>
     </recent_temporary>

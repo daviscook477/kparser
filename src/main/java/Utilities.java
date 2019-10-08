@@ -35,13 +35,13 @@ public class Utilities {
     }
 
     public static void PrintInfo(String str) {
-        if (Main.BE_VERBOSE) {
+        if (!Main.settings.BE_SILENT) {
             System.out.println(str);
         }
     }
 
     public static void PrintDebug(String str) {
-        if (Main.BE_VERY_VERBOSE) {
+        if (Main.settings.BE_VERBOSE) {
             System.out.println(str);
         }
     }
