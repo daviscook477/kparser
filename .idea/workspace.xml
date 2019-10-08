@@ -3,10 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="18519775-3612-4264-a380-4b7bd2a37154" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/KAnimConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/KAnimConverter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Reader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Reader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Writer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Writer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ScmlConverter.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,7 +59,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.To SCML">
+  <component name="RunManager" selected="Application.To KAnim">
     <configuration name="Help" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="kparse" />
@@ -95,7 +95,7 @@
     <configuration name="To SCML" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="kparse" />
-      <option name="PROGRAM_PARAMETERS" value="--to-scml Assets\Texture2D\spaceheater_0.png Assets\TextAsset\spaceheater_anim.bytes Assets\TextAsset\spaceheater_build.bytes" />
+      <option name="PROGRAM_PARAMETERS" value="--to-scml -o spaceheater Assets\Texture2D\spaceheater_0.png Assets\TextAsset\spaceheater_anim.bytes Assets\TextAsset\spaceheater_build.bytes" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../oni-sprites" />
       <method v="2">
         <option name="Make" enabled="true" />

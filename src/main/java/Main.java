@@ -19,6 +19,9 @@ class Settings {
 	@Option(name="--to-scml", aliases={"-S"}, usage="Convert from KAnim to SCML.")
 	public boolean MAKE_SCML = false;
 
+	@Option(name="--output-dir", aliases={"-o"}, usage="The directory to output files in.")
+	public String OUTPUT_DIR = "output";
+
 	// receives other command line parameters than options
 	@Argument
 	public List<String> arguments;
@@ -70,7 +73,7 @@ public class Main {
 					System.exit(1);
 				}
 
-				KAnimConverter.convert(png, build, anim);
+				KAnimConverter.convert(png, build, anim, settings.OUTPUT_DIR);
 			} else {
 				System.err.println("You must specify the conversion direction (--to-kanim or --to-scml).");
 			}

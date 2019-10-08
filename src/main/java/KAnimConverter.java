@@ -9,7 +9,12 @@ import javax.xml.transform.TransformerException;
 
 public class KAnimConverter {
 	
-	public static void convert(String imgPathStr, String buildPathStr, String animPathStr) throws FileNotFoundException, IOException, ParserConfigurationException, TransformerException {
+	public static void convert(String imgPathStr, String buildPathStr, String animPathStr, String outputDir) throws FileNotFoundException, IOException, ParserConfigurationException, TransformerException {
+		var outputPath = Path.of(outputDir);
+		// Ensure output dirs exist
+		outputPath.toFile().mkdirs();
+
+		Utilities.PrintInfo(String.format("Outputting to %s", outputPath.toAbsolutePath().toString()));
 		Utilities.PrintInfo("Unpack started.");
 		var imgPath = Path.of(imgPathStr);
 		var build = Path.of(buildPathStr).toFile();
@@ -20,8 +25,6 @@ public class KAnimConverter {
 				new FileInputStream(imgPath.toFile()));
 		Utilities.PrintInfo("Parsing build data.");
 		reader.parseBILDData();
-		Path outputPath = Path.of("").resolve("scml");
-		outputPath.toFile().mkdirs();
 		Utilities.PrintInfo("Exporting textures.");
 
 		reader.exportTextures(outputPath);

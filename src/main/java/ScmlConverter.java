@@ -833,6 +833,10 @@ public class ScmlConverter {
 		}
 		out.close();
 	}
+
+	public static Path getOutputPath() {
+		return Path.of("").resolve(Main.settings.OUTPUT_DIR).toAbsolutePath();
+	}
 	
 	public static void convert(Path scmlpath) throws IOException, SAXException, ParserConfigurationException {
 		var scml = ScmlConverter.loadSCML(scmlpath.toString());
@@ -840,19 +844,20 @@ public class ScmlConverter {
 		var inputPath = scmlpath.getParent();
 
 		// Where we're outputting
-		var outputPath = inputPath.resolve("build");
+		var outputPath = getOutputPath();
 		// Make sure our output folder exists
 		if (outputPath.toFile().mkdirs()) {
 			Utilities.PrintInfo("Creating output directories.");
 		}
 
-		// path of the output .atlas file
-		var atlasPath = outputPath.resolve(converter.nameOfEntity() + ".atlas");
-
 		Utilities.PrintInfo("Packing texture...");
 		converter.packBILD(inputPath, outputPath);
 		Utilities.PrintInfo("Packing animation...");
+
+		// path of the output .atlas file
+		var atlasPath = outputPath.resolve(converter.nameOfEntity() + ".atlas");
 		converter.packANIM(atlasPath, outputPath);
+
 		Utilities.PrintInfo("Done.");
 	}
 
