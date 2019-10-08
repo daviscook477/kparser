@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,11 @@ public class Writer {
 		initAnimationInfo();
 	}
 
-	public void save(String path) throws TransformerException, IOException {
+	public void save(Path path) throws TransformerException, IOException {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(scml);
-		FileWriter writer = new FileWriter(new File(path));
+		FileWriter writer = new FileWriter(path.toFile());
 		StreamResult result = new StreamResult(writer);
 		transformer.transform(source, result);
 	}

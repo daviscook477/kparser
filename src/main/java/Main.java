@@ -24,7 +24,7 @@ class Settings {
 	public List<String> arguments;
 
 	Settings() {
-		arguments = new ArrayList<String>();
+		arguments = new ArrayList<>();
 	}
 }
 
@@ -46,9 +46,33 @@ public class Main {
 			if (settings.MAKE_KANIM) {
 				ScmlConverter.convert(Utilities.getAbsolutePath(files.get(0)));
 			} else if (settings.MAKE_SCML) {
-				KAnimConverter.convert(files.get(0), files.get(1), files.get(2));
+				String png = null, build = null, anim = null;
+				for (var filename : files) {
+					if (filename.endsWith(".png")) {
+						png = filename;
+					} else if (filename.endsWith("build.bytes")) {
+						build = filename;
+					} else if (filename.endsWith("anim.bytes")) {
+						anim = filename;
+					}
+				}
+
+				if (png == null) {
+					System.err.println("You must specify a .png file.");
+				}
+				if (build == null) {
+					System.err.println("You must specify a build.bytes file.");
+				}
+				if (anim == null) {
+					System.err.println("You must specify an anim.bytes file.");
+				}
+				if (png == null || build == null || anim == null) {
+					System.exit(1);
+				}
+
+				KAnimConverter.convert(png, build, anim);
 			} else {
-				System.out.println("You must specify the conversion direction (--kanim or --scml).");
+				System.err.println("You must specify the conversion direction (--kanim or --scml).");
 			}
 		}
 	}

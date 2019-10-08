@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,11 +93,11 @@ public class Reader {
 		this.ANIMIdMap = null;
 	}
 
-	public void exportTextures(String basePath) throws IOException {
+	public void exportTextures(Path basePath) throws IOException {
 		for (BILDRow row : BILDTable) {
-			System.out.println(row.x1 + " " + (row.h - row.y1) + " " + row.w + " " + row.h + "    " + IMG.getWidth() + " " + IMG.getHeight());
+			Utilities.PrintDebug(row.x1 + " " + (row.h - row.y1) + " " + row.w + " " + row.h + "    " + IMG.getWidth() + " " + IMG.getHeight());
 			BufferedImage texture = IMG.getSubimage((int) row.x1, (int) (IMG.getHeight() - row.y1), (int) row.w, (int) row.h);
-			File outFile = new File(basePath + row.name + '_' + row.index + ".png");
+			File outFile = basePath.resolve(row.name + '_' + row.index + ".png").toFile();
 			ImageIO.write(texture, "png", outFile);
 		}
 	}
