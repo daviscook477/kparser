@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,9 +45,7 @@ public class ScmlConverter {
 	private static final int ANIM_VERSION = 5;
 	private static final int MS_PER_S = 1000;
 
-	private String path;
 	private Document scml;
-	private boolean initialized = false;
 
 	public static Document loadSCML(String path) throws IOException, SAXException, ParserConfigurationException {
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -54,11 +54,8 @@ public class ScmlConverter {
 		return scml;
 	}
 
-	public void init(String path, Document scml) {
-		if (initialized) return;
-		this.path = path;
+	public ScmlConverter(Document scml) {
 		this.scml = scml;
-		this.initialized = true;
 	}
 
 	private Element firstMatching(String name) {
@@ -288,20 +285,20 @@ public class ScmlConverter {
 	 *
 	 * If this invariant is not maintained, I have no idea if packBILD will work
 	 */
-	public void packBILD(String baseTexturePath) throws IOException {
-		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
+	public void packBILD(Path inputPath, Path outputPath) throws IOException {
 		TexturePacker.Settings settings = new TexturePacker.Settings();
+		settings.silent = true;
 		settings.square = true;
 		String name = nameOfEntity();
-		TexturePacker.process(settings, baseTexturePath, baseTexturePath, name);
-		String imgPath = baseTexturePath + name + ".png";
-		String atlasPath = baseTexturePath + name + ".atlas";
+		TexturePacker.process(settings, inputPath.toString(), outputPath.toString(), name);
+		Path imgPath = outputPath.resolve(name + ".png");
+		Path atlasPath = outputPath.resolve(name + ".atlas");
 		// read the produced atlas file to know what data must be included in the BILD file
-		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
+		BufferedReader reader = new BufferedReader(new FileReader(atlasPath.toString()));
 
 		BILD BILDData = new BILD();
 		BILDData.version = BILD_VERSION;
-		setSymbolsAndFrames(BILDData, baseTexturePath, imgPath);
+		setSymbolsAndFrames(BILDData, inputPath.toString(), imgPath.toString());
 		BILDData.name = name;
 
 		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
@@ -311,7 +308,7 @@ public class ScmlConverter {
 
 		BILDData.symbolsList = new ArrayList<>();
 		int symbolIndex = -1;
-		BufferedImage packedImg = ImageIO.read(new File(imgPath));
+		BufferedImage packedImg = ImageIO.read(new File(imgPath.toString()));
 		int imgWidth = packedImg.getWidth();
 		int imgHeight = packedImg.getHeight();
 		String lastName = null;
@@ -354,20 +351,21 @@ public class ScmlConverter {
 			BILDData.symbolsList.get(symbolIndex).framesList.add(frame);
 		}
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_build.bytes"));
+		DataOutputStream out = new DataOutputStream(
+				new FileOutputStream(outputPath.resolve(name + "_build.bytes").toString()));
 		writeString(out, "BILD", false);
 		// have to use custom write for noncharacter strings because need to write in little endian
 		writeInt(out, BILD_VERSION);
-		System.out.println("version="+ BILD_VERSION);
+		Utilities.PrintDebug("version="+ BILD_VERSION);
 		writeInt(out, BILDData.symbols);
-		System.out.println("symbols="+BILDData.symbols);
+		Utilities.PrintDebug("symbols="+BILDData.symbols);
 		writeInt(out, BILDData.frames);
-		System.out.println("frames="+BILDData.frames);
+		Utilities.PrintDebug("frames="+BILDData.frames);
 		writeString(out, BILDData.name);
-		System.out.println("name="+BILDData.name);
+		Utilities.PrintDebug("name="+BILDData.name);
 		int i = 0;
 		for (BILDSymbol symbol : BILDData.symbolsList) {
-			System.out.println("symbol " + i + "=("+symbol.hash+","+symbol.path+","+symbol.color+","+symbol.flags+","+symbol.numFrames+")");
+			Utilities.PrintDebug("symbol " + i + "=("+symbol.hash+","+symbol.path+","+symbol.color+","+symbol.flags+","+symbol.numFrames+")");
 			writeInt(out, symbol.hash);
 			writeInt(out, symbol.path);
 			writeInt(out, symbol.color);
@@ -393,7 +391,7 @@ public class ScmlConverter {
 
 		writeInt(out, hashTable.entrySet().size());
 		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
-			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			Utilities.PrintDebug(hashPair.getValue()+"="+hashPair.getKey());
 			writeInt(out, hashPair.getValue());
 			writeString(out, hashPair.getKey());
 		}
@@ -403,7 +401,7 @@ public class ScmlConverter {
 	private Element getMainline(NodeList timelines) {
 		for (int i = 0; i < timelines.getLength(); i++) {
 			if (!(timelines.item(i) instanceof Element)) {
-				System.out.println("skipping non-element tag");
+				Utilities.PrintDebug("skipping non-element tag");
 				continue;
 			}
 			Element ele = (Element) timelines.item(i);
@@ -434,7 +432,7 @@ public class ScmlConverter {
 		int maxVisibleSymbolFrames = 0;
 		for (int anim = 0; anim < animations.getLength(); anim++) {
 			if (!(animations.item(anim) instanceof Element)) {
-				System.out.println("skipping non-element child");
+				Utilities.PrintDebug("skipping non-element child");
 				continue;
 			}
 			Element animation = (Element) animations.item(anim);
@@ -446,7 +444,7 @@ public class ScmlConverter {
 			NodeList keyFrames = mainline.getChildNodes();
 			for (int frame = 0; frame < keyFrames.getLength(); frame++) {
 				if (!(keyFrames.item(frame) instanceof Element)) {
-					System.out.println("skipping non-element child");
+					Utilities.PrintDebug("skipping non-element child");
 					continue;
 				}
 				Element key = (Element) keyFrames.item(frame);
@@ -557,9 +555,7 @@ public class ScmlConverter {
 		public float x, y, angle, scaleX, scaleY;
 	}
 
-	public void packANIM(String baseTexturePath) throws IOException {
-		if (!initialized) throw new RuntimeException("Must initialize ScmlConverter before packing");
-
+	public void packANIM(Path atlasPath, Path outputPath) throws IOException {
 		String name = nameOfEntity();
 
 		ANIM ANIMData = new ANIM();
@@ -569,8 +565,7 @@ public class ScmlConverter {
 
 		// could build hash table different way but this code already works for BILD making
 		// hash table so just reuse it here
-		String atlasPath = baseTexturePath + name + ".atlas";
-		BufferedReader reader = new BufferedReader(new FileReader(atlasPath));
+		BufferedReader reader = new BufferedReader(new FileReader(atlasPath.toFile()));
 		List<AtlasEntry> orderedAtlasEntries = getOrderedAtlasEntries(reader);
 		Map<String, Integer> hashTable = getHashTable(orderedAtlasEntries);
 
@@ -594,8 +589,8 @@ public class ScmlConverter {
 
 			ANIMBank bank = new ANIMBank();
 			bank.name = animation.getAttribute("name");
-			System.out.println("bank.name="+bank.name);
-			System.out.println("hashTable="+hashTable);
+			Utilities.PrintDebug("bank.name="+bank.name);
+			Utilities.PrintDebug("hashTable="+hashTable);
 			bank.hash = hashTable.get(bank.name);
 			int interval = 33;
 			try {
@@ -770,7 +765,7 @@ public class ScmlConverter {
 						ANIMFrame.elementsList.add(element);
 						elementCount++;
 					} catch (NumberFormatException e) {
-						System.out.println("found invalid file reference - skipping");
+						Utilities.PrintDebug("found invalid file reference - skipping");
 					}
 				}
 
@@ -789,7 +784,9 @@ public class ScmlConverter {
 		}
 		ANIMData.anims = animCount;
 
-		DataOutputStream out = new DataOutputStream(new FileOutputStream(path + name + "_anim.bytes"));
+		DataOutputStream out = new DataOutputStream(
+				new FileOutputStream(outputPath.resolve(name + "_anim.bytes").toFile()));
+
 		writeString(out, "ANIM", false);
 		// simply read through built ANIM data structure and write out the properties
 		writeInt(out, ANIMData.version);
@@ -830,28 +827,38 @@ public class ScmlConverter {
 
 		writeInt(out, hashTable.entrySet().size());
 		for (Map.Entry<String, Integer> hashPair : hashTable.entrySet()) {
-			System.out.println(hashPair.getValue()+"="+hashPair.getKey());
+			Utilities.PrintDebug(hashPair.getValue()+"="+hashPair.getKey());
 			writeInt(out, hashPair.getValue());
 			writeString(out, hashPair.getKey());
 		}
 		out.close();
 	}
-	
-	public static void convert(String scmlPath) throws IOException, SAXException, ParserConfigurationException {
-		File scmlFile = new File(scmlPath);
-		String folderPath = scmlFile.getParent() + "\\";
-		ScmlConverter converter = new ScmlConverter();
-		converter.init(folderPath, ScmlConverter.loadSCML(scmlPath));
-		converter.packBILD(folderPath);
-		converter.packANIM(folderPath);
-	}
 
-//	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-//		String path = "C:\\Users\\Davis\\Documents\\ONI-export\\sharedassets1.assets\\Assets\\Test\\coldwheatfiles\\outscml\\";
-//		ScmlConverter converter = new ScmlConverter();
-//		converter.init(path, ScmlConverter.loadSCML(path + "coldwheat_0.scml"));
-//		converter.packBILD(path); // reuse output path as texture path
-//		converter.packANIM(path);
-//	}
+	public static Path getOutputPath() {
+		return Path.of("").resolve(Main.settings.OUTPUT_DIR).toAbsolutePath();
+	}
+	
+	public static void convert(Path scmlpath) throws IOException, SAXException, ParserConfigurationException {
+		var scml = ScmlConverter.loadSCML(scmlpath.toString());
+		ScmlConverter converter = new ScmlConverter(scml);
+		var inputPath = scmlpath.getParent();
+
+		// Where we're outputting
+		var outputPath = getOutputPath();
+		// Make sure our output folder exists
+		if (outputPath.toFile().mkdirs()) {
+			Utilities.PrintInfo("Creating output directories.");
+		}
+
+		Utilities.PrintInfo("Packing texture...");
+		converter.packBILD(inputPath, outputPath);
+		Utilities.PrintInfo("Packing animation...");
+
+		// path of the output .atlas file
+		var atlasPath = outputPath.resolve(converter.nameOfEntity() + ".atlas");
+		converter.packANIM(atlasPath, outputPath);
+
+		Utilities.PrintInfo("Done.");
+	}
 
 }

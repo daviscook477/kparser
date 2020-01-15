@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,11 @@ public class Writer {
 		initAnimationInfo();
 	}
 
-	public void save(String path) throws TransformerException, IOException {
+	public void save(Path path) throws TransformerException, IOException {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(scml);
-		FileWriter writer = new FileWriter(new File(path));
+		FileWriter writer = new FileWriter(path.toFile());
 		StreamResult result = new StreamResult(writer);
 		transformer.transform(source, result);
 	}
@@ -219,7 +220,7 @@ public class Writer {
 				ANIMElement ele = bank.framesList.get(frame).elementsList.get(element);
 				updateOccurrenceMap(ele, occurrenceMap);
 				String name = nameOf(ele, occurrenceMap);
-				System.out.println(name);
+				Utilities.PrintDebug(name);
 				object_ref.setAttribute("id", Integer.toString(idMap.get(name)));
 				object_ref.setAttribute("timeline", Integer.toString(idMap.get(name)));
 				// b/c ONI has animation properties for each element specified at every frame the timeline key frame that
