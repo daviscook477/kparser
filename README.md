@@ -2,6 +2,8 @@
 
 A bidirectional converter between scml projects and klei animation files.
 
+**Please take a look at an updated version by skairunner [here](https://github.com/skairunner/kanimal-SE). It is a convenient to use standalone program with additional features like interpolating between keyframes**
+
 For the direction (klei animation files -> scml project) this tool must be used in tandem with a unity asset extractor. You will have to use the asset extractor to get the game files - specifically you are looking for the
 atlas file (a single png that contains image data for an animation) and the corresponding (they have the same name)
 `*.build` and `*.anim` file. Then this tool can convert that into an scml project.
@@ -66,21 +68,4 @@ Because of limitations of the klei animation format you cannot convert all Sprit
 ![Image of command to run](tut_step_14.png)
 2. Now you will have created your three Klei animation files in the same directory as the scml project.
 ![Image of created files](tut_step_15.png)
-3. The final step before you can use this new animation you have created in an ONI mod is to create an AssetBundle from these three files. This is the part that requires you to have full install of unity to do it. Unity versions 2018.3.0f2 and 2017.1.5f1 are confirmed to work. Any 2019 Unity version will fail so do not use that version of unity.
-4. Create a new 3d unity project and look at the assets panel in the bottom. It will be empty.
-![Image of assets panel](tut_step_16.png)
-5. Follow this [Unity tutorial](https://docs.unity3d.com/Manual/AssetBundles-Workflow.html) starting at the **Build the AssetBundles** header to get your Unity setup to create asset bundles.
-6. Once that is done you now should have your assets panel look like this with the "Editor" folder.
-![Image of editor folder](tut_step_17.png)
-7. Now copy your compiled Klei Animation files into the Unity Assets folder.
-![Image of assets copied over](tut_step_18.png)
-8. Next you must assign the files to an AssetBundle. Using the AssetBundle menu in the bottom right of the screen create a new AssetBundle with whatever name you want.
-![Image of asset bundle menu location](tut_step_19.png)
-9. This is what it will look like once you have assigned an AssetBundle to each of the files. Assign the three files to the **same** asset bundle.
-![Image of asset bundle assigned](tut_step_20.png)
-10. Finally right click to open the menu and then select "Build AssetBundles"
-![Image of build assetbundles option](tut_step_21.png)
-11. You AssetBundle will have been created in a new directory called "AssetBundles"
-![Image of generated bundle](tut_step_22.png)
-12. The last step is to copy the generated assetbundle file from the "AssetBundles" folder in your temporary Unity project to the "anims" folder of your mod. All animations in assetbundles that are placed in the "anims" folder will automatically be loaded as Klei animations in ONI that are available with an id that is the same as the name of the assetbundle file that you created.
-![Image of anims folder](tut_step_23.png)
+3. The final step before you can use this new animation you have created in an ONI mod is to copy these three Klei animation files to the "anim/assets" folder of your mod. All animations in that folder will automatically be loaded as Klei animations in ONI that are. All animations have `_kanim` appended to the end of them when referenced in your mod code. For example if you copied your three Klei animation files to a directory called "anim/assets/mysupercoolanimation" then in game you will refer to that as "mysupercoolanimation_kanim".
